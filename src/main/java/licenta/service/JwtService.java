@@ -21,7 +21,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class JwtService {
 
-    public String generateJwt(String email, UUID userId, HashSet<String> roles) throws InternalServerErrorException{
+    public String generateJwt(String email, UUID userId, HashSet<String> roles) throws InternalServerErrorException {
         return Jwt
                 .issuer(getIssuer())
                 .upn(email)
