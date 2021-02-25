@@ -38,13 +38,6 @@ public class ActivationCodeService {
     @Inject
     UserService userService;
 
-    public ActivationCode getActivationCodeById(int id) throws ActivationCodeNotFoundException {
-//        Optional<ActivationCode> activationCodeOptional = activationCodeDAO.getActivationCodeById(id);
-//        return activationCodeOptional.orElseThrow(() -> new ActivationCodeNotFoundException(
-//                ExceptionMessage.ACTIVATION_CODE_NOT_FOUND, Response.Status.NOT_FOUND));
-        return new ActivationCode();
-    }
-
     @Transactional
     public void verifyCodeAndEnableEmailById(UUID userId, String codeGuess)
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException {
@@ -56,7 +49,6 @@ public class ActivationCodeService {
                         ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
             }
             userDAO.updateEmailEnabledById(userId, true);
-            smsService.sendConfirmationSms(activationCode.getUser(), "2344");
         } catch (NoSuchAlgorithmException | InternalServerErrorException | InvalidKeyException | NoSuchPaddingException
                 | IllegalBlockSizeException | BadPaddingException e) {
 

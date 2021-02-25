@@ -85,7 +85,6 @@ public class UserService {
             throw new InternalServerErrorException(
                     ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
         }
-
         activationCodeDAO.persist(activationCode);
 
         user.setId(UUID.randomUUID());
@@ -95,7 +94,7 @@ public class UserService {
         user.setActivationCode(activationCode);
         user.setProfilePictureURL(null);
         user.setEmailEnabled(false);
-        user.setPhoneEnabled(false);
+        user.setPhoneEnabled(true); // TODO: find a solution to send sms
         userDAO.persist(user);
 
         // send an email with the activation code

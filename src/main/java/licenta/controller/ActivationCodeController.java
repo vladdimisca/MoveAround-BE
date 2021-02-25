@@ -32,11 +32,7 @@ public class ActivationCodeController {
     public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException {
 
-        User user = new User();
-        user.setCallingCode("");
-        user.setPhoneNumber("");
-        smsService.sendConfirmationSms(user, "");
-        //activationCodeService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
+        activationCodeService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
         return Response.noContent().build();
     }
 }
