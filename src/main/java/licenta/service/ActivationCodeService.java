@@ -3,7 +3,6 @@ package licenta.service;
 import licenta.dao.ActivationCodeDAO;
 import licenta.dao.UserDAO;
 import licenta.exception.ExceptionMessage;
-import licenta.exception.definition.ActivationCodeNotFoundException;
 import licenta.exception.definition.InternalServerErrorException;
 import licenta.exception.definition.UserNotFoundException;
 import licenta.exception.definition.WrongActivationCodeException;
