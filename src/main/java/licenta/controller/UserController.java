@@ -3,9 +3,10 @@ package licenta.controller;
 import licenta.exception.definition.*;
 import licenta.exception.definition.InternalServerErrorException;
 import licenta.mapper.UserMapper;
+import licenta.model.ActivationCode;
 import licenta.model.User;
 import licenta.service.UserService;
-import licenta.util.enumeration.UserRole;
+import licenta.util.UserUtil;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jose4j.json.internal.json_simple.JSONObject;
 
@@ -37,7 +38,7 @@ public class UserController {
     @PermitAll
     @Path("/register")
     public Response register(User user) throws FailedToParseTheBodyException, EmailAlreadyExistsException,
-            PhoneNumberAlreadyExistsException, InternalServerErrorException, RoleNotFoundException {
+            PhoneNumberAlreadyExistsException, InternalServerErrorException {
 
         return Response.ok().entity(userMapper.fromUser(userService.createUser(user))).build();
     }
@@ -46,23 +47,21 @@ public class UserController {
     @PermitAll
     @Path("/login")
     public Response login(User user) throws InternalServerErrorException, UserNotFoundException,
-            WrongPasswordException, RoleNotFoundException {
-
+            WrongPasswordException {
         return userService.verifyUserAndGenerateToken(
-                user.getPhoneNumber(), user.getCallingCode(), user.getRole(), user.getPassword());
+                user.getPhoneNumber(), user.getCallingCode(), user.getPassword(), UserUtil.REGULAR_USER);
     }
 
     @GET
     @Path("/{userId}")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response getUserById(@PathParam("userId") UUID userId) throws UserNotFoundException {
         return Response.ok().entity(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
-
     @PATCH
     @Path("/{userId}/password")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response updatePasswordById(@PathParam("userId") UUID userId, JSONObject body)
             throws UserNotFoundException, WrongPasswordException, ForbiddenActionException,
             FailedToParseTheBodyException, InternalServerErrorException {
@@ -73,7 +72,7 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/profile-picture")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response updateProfilePictureById(@PathParam("userId") UUID userId, String profilePicture)
             throws ForbiddenActionException, InternalServerErrorException,
             FailedToParseTheBodyException, UserNotFoundException {
@@ -84,10 +83,10 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/email")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response updateEmailById(@PathParam("userId") UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
-            EmailAlreadyExistsException, InternalServerErrorException {
+            EmailAlreadyExistsException {
 
         userService.updateEmailById(userId, user.getEmail(), jwt);
         return Response.noContent().build();
@@ -95,7 +94,7 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/first-name")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response updateFirstNameById(@PathParam("userId") UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException {
 
@@ -105,7 +104,7 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/last-name")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response updateLastNameById(@PathParam("userId") UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException {
 
@@ -115,10 +114,9 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/phone-number")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
-    public Response updateFullPhoneNumberById(@PathParam("userId") UUID userId, User user)
-            throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
-            InternalServerErrorException, PhoneNumberAlreadyExistsException {
+    @RolesAllowed({UserUtil.REGULAR_USER})
+    public Response updateFullPhoneNumberById(@PathParam("userId") UUID userId, User user) throws ForbiddenActionException,
+            FailedToParseTheBodyException, UserNotFoundException, PhoneNumberAlreadyExistsException {
 
         userService.updateFullPhoneNumberById(userId, user.getPhoneNumber(), user.getCallingCode(), jwt);
         return Response.noContent().build();
@@ -126,11 +124,32 @@ public class UserController {
 
     @DELETE
     @Path("/{userId}")
-    @RolesAllowed(value = {UserRole.Constants.DRIVER_VALUE, UserRole.Constants.PASSENGER_VALUE})
+    @RolesAllowed({UserUtil.REGULAR_USER})
     public Response deleteUserById(@PathParam("userId") UUID userId)
             throws ForbiddenActionException, UserNotFoundException {
 
         userService.deleteUserById(userId, jwt);
+        return Response.noContent().build();
+    }
+
+    @POST
+    @PermitAll
+    @Path("/{userId}/activation/email")
+    public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
+            throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
+            ActivationCodeNotFoundException, ActivationCodeExpiredException {
+
+        userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
+        return Response.noContent().build();
+    }
+
+    @POST
+    @PermitAll
+    @Path("/{userId}/activation/email/resend")
+    public Response resendEmailByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
+            InternalServerErrorException, ActivationCodeNotFoundException {
+
+        userService.resendEmailCodeById(userId);
         return Response.noContent().build();
     }
 }

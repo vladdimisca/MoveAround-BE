@@ -16,11 +16,16 @@ import licenta.validator.UserValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -53,16 +58,14 @@ public class UserService {
     @Inject
     SmsService smsService;
 
-    private void checkEmailNotUsed(String email, String role) throws EmailAlreadyExistsException, RoleNotFoundException {
-        if (userDAO.getUserByEmail(email, Util.getUserRoleFromValue(role)).isPresent()) {
+    private void checkEmailNotUsed(String email) throws EmailAlreadyExistsException {
+        if (userDAO.getUserByEmail(email).isPresent()) {
             throw new EmailAlreadyExistsException(ExceptionMessage.EMAIL_ALREADY_EXISTS, Response.Status.CONFLICT);
         }
     }
 
-    private void checkPhoneNumberNotUsed(String phoneNumber, String callingCode, String role)
-            throws PhoneNumberAlreadyExistsException, RoleNotFoundException {
-
-        if (userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode, Util.getUserRoleFromValue(role)).isPresent()) {
+    private void checkPhoneNumberNotUsed(String phoneNumber, String callingCode) throws PhoneNumberAlreadyExistsException {
+        if (userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode).isPresent()) {
             throw new PhoneNumberAlreadyExistsException(
                     ExceptionMessage.PHONE_NUMBER_ALREADY_EXISTS, Response.Status.CONFLICT);
         }
@@ -70,15 +73,16 @@ public class UserService {
 
     @Transactional
     public User createUser(User user) throws EmailAlreadyExistsException, PhoneNumberAlreadyExistsException,
-            InternalServerErrorException, FailedToParseTheBodyException, RoleNotFoundException {
+            InternalServerErrorException, FailedToParseTheBodyException {
 
         userValidator.validate(user, ValidationMode.CREATE);
-        checkEmailNotUsed(user.getEmail(), Util.getUserRoleFromValue(user.getRole()).getValue());
-        checkPhoneNumberNotUsed(
-                user.getPhoneNumber(), user.getCallingCode(), Util.getUserRoleFromValue(user.getRole()).getValue());
+        checkEmailNotUsed(user.getEmail());
+        checkPhoneNumberNotUsed(user.getPhoneNumber(), user.getCallingCode());
 
         String emailCode = SecureRandomService.generateRandomCode();
         ActivationCode activationCode = new ActivationCode();
+        activationCode.setEmail(user.getEmail());
+        activationCode.setEmailCreatedAt(java.util.Calendar.getInstance().getTime());
         try {
             activationCode.setEmailCode(encryptionService.encryptAES(emailCode));
         } catch (Exception e) {
@@ -89,7 +93,6 @@ public class UserService {
 
         user.setId(UUID.randomUUID());
         user.setCreatedAt(java.util.Calendar.getInstance().getTime());
-        user.setRole(Util.getUserRoleFromValue(user.getRole()).getValue());
         user.setPassword(encryptionService.encrypt(user.getPassword())); // encrypt the password
         user.setActivationCode(activationCode);
         user.setProfilePictureURL(null);
@@ -109,25 +112,22 @@ public class UserService {
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
     }
 
-    public User getUserByFullPhoneNumber(String phoneNumber, String callingCode, String role)
-            throws UserNotFoundException, RoleNotFoundException {
+    public User getUserByFullPhoneNumber(String phoneNumber, String callingCode) throws UserNotFoundException {
 
-        Optional<User> user = userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode, Util.getUserRoleFromValue(role));
+        Optional<User> user = userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode);
         return user.orElseThrow(() ->
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
     }
 
-    public Response verifyUserAndGenerateToken(String phoneNumber, String callingCode, String role, String password)
-            throws UserNotFoundException, InternalServerErrorException, WrongPasswordException, RoleNotFoundException {
+    public Response verifyUserAndGenerateToken(String phoneNumber, String callingCode, String password, String role)
+            throws UserNotFoundException, InternalServerErrorException, WrongPasswordException {
 
-        userValidator.validateRole(role);
-
-        User user = getUserByFullPhoneNumber(phoneNumber, callingCode, role);
+        User user = getUserByFullPhoneNumber(phoneNumber, callingCode);
         if (!encryptionService.passwordMatchesHash(user.getPassword(), password)) {
             throw new WrongPasswordException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
         }
         String token = jwtService.
-                generateJwt(user.getEmail(), user.getId(), Util.generateSingleRoleSetFromValue(user.getRole()));
+                generateJwt(user.getEmail(), user.getId(), new HashSet<>(Collections.singletonList(role)));
 
         return Response
                 .ok(userMapper.fromUser(user))
@@ -144,7 +144,7 @@ public class UserService {
     @Transactional
     public void updateEmailById(UUID userId, String email, JsonWebToken jwt)
             throws ForbiddenActionException, FailedToParseTheBodyException, EmailAlreadyExistsException,
-            UserNotFoundException, InternalServerErrorException {
+            UserNotFoundException {
 
         verifyUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId, jwt);
@@ -152,12 +152,7 @@ public class UserService {
         if (existingUser.getEmail().equals(email)) {
             return;
         }
-        try {
-            checkEmailNotUsed(email, existingUser.getRole());
-        } catch (RoleNotFoundException e) {
-            throw new InternalServerErrorException(
-                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        checkEmailNotUsed(email);
         userValidator.validateEmail(email);
         userDAO.updateEmailById(userId, email);
     }
@@ -185,7 +180,7 @@ public class UserService {
     @Transactional
     public void updateFullPhoneNumberById(UUID userId, String phoneNumber, String callingCode, JsonWebToken jwt)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
-            PhoneNumberAlreadyExistsException, InternalServerErrorException {
+            PhoneNumberAlreadyExistsException {
 
         verifyUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId, jwt);
@@ -193,12 +188,7 @@ public class UserService {
         if (existingUser.getPhoneNumber().equals(phoneNumber) && existingUser.getCallingCode().equals(callingCode)) {
             return;
         }
-        try {
-            checkPhoneNumberNotUsed(phoneNumber, callingCode, existingUser.getRole());
-        } catch (RoleNotFoundException e) {
-            throw new InternalServerErrorException(
-                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        checkPhoneNumberNotUsed(phoneNumber, callingCode);
         userValidator.validateFullPhoneNumber(phoneNumber, callingCode);
         userDAO.updateFullPhoneNumberById(userId, phoneNumber, callingCode);
     }
@@ -266,5 +256,66 @@ public class UserService {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.FORBIDDEN, "This id does not match the token");
         }
+    }
+
+    @Transactional
+    public void verifyCodeAndEnableEmailById(UUID userId, String codeGuess) throws InternalServerErrorException,
+            WrongActivationCodeException, UserNotFoundException, ActivationCodeNotFoundException, ActivationCodeExpiredException {
+
+        User user = getUserById(userId);
+        ActivationCode activationCode = user.getActivationCode();
+        if (activationCode == null || activationCode.getEmailCode() == null) {
+            throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
+                    Response.Status.NOT_FOUND, "There is no activation code sent for this email");
+        }
+        try {
+            long millisecondsPassed = (new java.util.Date()).getTime() - activationCode.getEmailCreatedAt().getTime();
+            long difference = TimeUnit.MINUTES.convert(millisecondsPassed , TimeUnit.MILLISECONDS);
+            if (difference > 3) {
+                throw new ActivationCodeExpiredException(
+                        ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
+            }
+            if (!encryptionService.decryptAES(activationCode.getEmailCode()).equals(codeGuess)) {
+                throw new WrongActivationCodeException(
+                        ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
+            }
+            if (user.getEmail().equals(activationCode.getEmail())) {
+                userDAO.updateEmailEnabledById(userId, true);
+            } else {
+                userDAO.updateEmailById(userId, activationCode.getEmail());
+            }
+        } catch (NoSuchAlgorithmException | InternalServerErrorException | InvalidKeyException | NoSuchPaddingException
+                | IllegalBlockSizeException | BadPaddingException e) {
+
+            throw new InternalServerErrorException(
+                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Transactional
+    public void resendEmailCodeById(UUID userId) throws UserNotFoundException, ActivationCodeNotFoundException,
+            InternalServerErrorException {
+
+        User user = getUserById(userId);
+        ActivationCode activationCode = user.getActivationCode();
+        if (activationCode == null || activationCode.getEmailCode() == null) {
+            throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
+                    Response.Status.NOT_FOUND, "There is no activation code sent for this email");
+        }
+        String newEmailCode = SecureRandomService.generateRandomCode();
+        try {
+            activationCodeDAO.updateEmailCodeById(activationCode.getId(), encryptionService.encryptAES(newEmailCode));
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException |
+                InvalidKeyException | InternalServerErrorException e) {
+
+            throw new InternalServerErrorException(
+                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+        emailService.sendConfirmationEmail(user, newEmailCode);
+    }
+
+    @Transactional
+    public void verifyCodeAndEnablePhoneById(UUID userId, String codeGuess) {
+
     }
 }

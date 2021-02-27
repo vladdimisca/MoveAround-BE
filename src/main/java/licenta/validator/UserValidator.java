@@ -5,13 +5,10 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.FailedToParseTheBodyException;
 import licenta.exception.definition.InternalServerErrorException;
-import licenta.exception.definition.RoleNotFoundException;
 import licenta.model.User;
-import licenta.util.enumeration.UserRole;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 @ApplicationScoped
 public class UserValidator implements Validator<User> {
@@ -22,7 +19,7 @@ public class UserValidator implements Validator<User> {
 
     @Override
     public void validate(User user, ValidationMode validationMode)
-            throws FailedToParseTheBodyException, RoleNotFoundException, InternalServerErrorException {
+            throws FailedToParseTheBodyException, InternalServerErrorException {
 
         if (!validationMode.equals(ValidationMode.CREATE)) {
             throw new InternalServerErrorException(
@@ -32,7 +29,6 @@ public class UserValidator implements Validator<User> {
         validateFirstName(user.getFirstName());
         validateLastName(user.getLastName());
         validateFullPhoneNumber(user.getPhoneNumber(), user.getCallingCode());
-        validateRole(user.getRole());
         validatePassword(user.getPassword());
     }
 
@@ -77,13 +73,6 @@ public class UserValidator implements Validator<User> {
         if (!password.matches(PASSWORD_PATTERN)) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "This password is not valid");
-        }
-    }
-
-    public void validateRole(String role) throws RoleNotFoundException {
-        Optional<UserRole> userRoleOptional = UserRole.fromValue(role);
-        if (userRoleOptional.isEmpty()) {
-            throw new RoleNotFoundException(ExceptionMessage.ROLE_NOT_FOUND, Response.Status.NOT_FOUND);
         }
     }
 

@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class SmsService {
 
-    private SmsService() {
+    SmsService() {
         Twilio.init("", "");
     }
 

@@ -2,7 +2,6 @@ package licenta.dao;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import licenta.model.User;
-import licenta.util.enumeration.UserRole;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Optional;
@@ -15,13 +14,12 @@ public class UserDAO implements PanacheRepository<User> {
         return find("id", userId).firstResultOptional();
     }
 
-    public Optional<User> getUserByEmail(String email, UserRole userRole) {
-        return find("email = ?1 and role = ?2", email, userRole.getValue()).firstResultOptional();
+    public Optional<User> getUserByEmail(String email) {
+        return find("email", email).firstResultOptional();
     }
 
-    public Optional<User> getUserByFullPhoneNumber(String phoneNumber, String callingCode, UserRole userRole) {
-        return find("phone_number = ?1 and calling_code = ?2 and role = ?3", phoneNumber, callingCode,
-                userRole.getValue()).firstResultOptional();
+    public Optional<User> getUserByFullPhoneNumber(String phoneNumber, String callingCode) {
+        return find("phone_number = ?1 and calling_code = ?2", phoneNumber, callingCode).firstResultOptional();
     }
 
     public void updateEmailById(UUID userId, String email) {

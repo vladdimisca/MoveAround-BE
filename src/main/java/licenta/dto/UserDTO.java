@@ -12,8 +12,9 @@ public class UserDTO implements Serializable {
     private String callingCode;
     private String phoneNumber;
     private String profilePictureURL;
+    private boolean emailEnabled;
+    private boolean phoneEnabled;
     private Date createdAt;
-    private String role;
 
     public UserDTO() {}
 
@@ -65,14 +66,6 @@ public class UserDTO implements Serializable {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
     public String getProfilePictureURL() {
         return profilePictureURL;
     }
@@ -87,5 +80,21 @@ public class UserDTO implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isEmailEnabled() {
+        return emailEnabled;
+    }
+
+    public void setEmailEnabled(boolean emailEnabled) {
+        this.emailEnabled = emailEnabled;
+    }
+
+    public boolean isPhoneEnabled() {
+        return phoneEnabled;
+    }
+
+    public void setPhoneEnabled(boolean phoneEnabled) {
+        this.phoneEnabled = phoneEnabled;
     }
 }

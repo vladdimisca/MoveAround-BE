@@ -13,7 +13,7 @@ public class User {
     @Id
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(name = "calling_code", nullable = false)
@@ -35,9 +35,6 @@ public class User {
 
     @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false)
-    private String role;
 
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
@@ -108,14 +105,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public String getProfilePictureURL() {
