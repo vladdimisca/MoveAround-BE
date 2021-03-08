@@ -1,17 +1,17 @@
 package licenta.controller;
 
+import io.quarkus.security.Authenticated;
 import licenta.exception.definition.*;
 import licenta.exception.definition.InternalServerErrorException;
 import licenta.mapper.UserMapper;
 import licenta.model.ActivationCode;
 import licenta.model.User;
 import licenta.service.UserService;
-import licenta.util.UserUtil;
+
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jose4j.json.internal.json_simple.JSONObject;
 
 import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -48,20 +48,19 @@ public class UserController {
     @Path("/login")
     public Response login(User user) throws InternalServerErrorException, UserNotFoundException,
             WrongPasswordException {
-        return userService.verifyUserAndGenerateToken(
-                user.getPhoneNumber(), user.getCallingCode(), user.getPassword(), UserUtil.REGULAR_USER);
+        return userService.verifyUserAndGenerateToken(user.getPhoneNumber(), user.getCallingCode(), user.getPassword());
     }
 
     @GET
     @Path("/{userId}")
-    @RolesAllowed({UserUtil.REGULAR_USER})
+    @Authenticated
     public Response getUserById(@PathParam("userId") UUID userId) throws UserNotFoundException {
         return Response.ok().entity(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
     @PATCH
     @Path("/{userId}/password")
-    @RolesAllowed({UserUtil.REGULAR_USER})
+    @Authenticated
     public Response updatePasswordById(@PathParam("userId") UUID userId, JSONObject body)
             throws UserNotFoundException, WrongPasswordException, ForbiddenActionException,
             FailedToParseTheBodyException, InternalServerErrorException {
@@ -72,7 +71,7 @@ public class UserController {
 
     @PATCH
     @Path("/{userId}/profile-picture")
-    @RolesAllowed({UserUtil.REGULAR_USER})
+    @Authenticated
     public Response updateProfilePictureById(@PathParam("userId") UUID userId, String profilePicture)
             throws ForbiddenActionException, InternalServerErrorException,
             FailedToParseTheBodyException, UserNotFoundException {
@@ -81,50 +80,20 @@ public class UserController {
                         userService.updateProfilePictureById(userId, profilePicture, jwt))).build();
     }
 
-    @PATCH
-    @Path("/{userId}/email")
-    @RolesAllowed({UserUtil.REGULAR_USER})
-    public Response updateEmailById(@PathParam("userId") UUID userId, User user)
+    @PUT
+    @Path("/{userId}")
+    @Authenticated
+    public Response updateUserById(@PathParam("userId") UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
-            EmailAlreadyExistsException {
+            EmailAlreadyExistsException, PhoneNumberAlreadyExistsException, InternalServerErrorException {
 
-        userService.updateEmailById(userId, user.getEmail(), jwt);
-        return Response.noContent().build();
-    }
-
-    @PATCH
-    @Path("/{userId}/first-name")
-    @RolesAllowed({UserUtil.REGULAR_USER})
-    public Response updateFirstNameById(@PathParam("userId") UUID userId, User user)
-            throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException {
-
-        userService.updateFirstNameById(userId,user.getFirstName(), jwt);
-        return Response.noContent().build();
-    }
-
-    @PATCH
-    @Path("/{userId}/last-name")
-    @RolesAllowed({UserUtil.REGULAR_USER})
-    public Response updateLastNameById(@PathParam("userId") UUID userId, User user)
-            throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException {
-
-        userService.updateLastNameById(userId,user.getLastName(), jwt);
-        return Response.noContent().build();
-    }
-
-    @PATCH
-    @Path("/{userId}/phone-number")
-    @RolesAllowed({UserUtil.REGULAR_USER})
-    public Response updateFullPhoneNumberById(@PathParam("userId") UUID userId, User user) throws ForbiddenActionException,
-            FailedToParseTheBodyException, UserNotFoundException, PhoneNumberAlreadyExistsException {
-
-        userService.updateFullPhoneNumberById(userId, user.getPhoneNumber(), user.getCallingCode(), jwt);
-        return Response.noContent().build();
+        userService.updateUserById(userId, user, jwt);
+        return Response.ok(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
     @DELETE
     @Path("/{userId}")
-    @RolesAllowed({UserUtil.REGULAR_USER})
+    @Authenticated
     public Response deleteUserById(@PathParam("userId") UUID userId)
             throws ForbiddenActionException, UserNotFoundException {
 
@@ -133,23 +102,23 @@ public class UserController {
     }
 
     @POST
-    @PermitAll
+    @Authenticated
     @Path("/{userId}/activation/email")
     public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
-            ActivationCodeNotFoundException, ActivationCodeExpiredException {
+            ActivationCodeNotFoundException, ActivationCodeExpiredException, ForbiddenActionException {
 
-        userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
+        userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode(), jwt);
         return Response.noContent().build();
     }
 
     @POST
-    @PermitAll
+    @Authenticated
     @Path("/{userId}/activation/email/resend")
-    public Response resendEmailByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
-            InternalServerErrorException, ActivationCodeNotFoundException {
+    public Response resendEmailCodeByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
+            InternalServerErrorException, ActivationCodeNotFoundException, ForbiddenActionException {
 
-        userService.resendEmailCodeById(userId);
+        userService.resendEmailCodeById(userId, jwt);
         return Response.noContent().build();
     }
 }

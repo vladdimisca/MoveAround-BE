@@ -34,6 +34,9 @@ public class User {
     private String profilePictureURL;
 
     @Column(nullable = false)
+    private String description;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "created_at", nullable = false)
@@ -145,5 +148,13 @@ public class User {
 
     public void setPhoneEnabled(boolean phoneEnabled) {
         this.phoneEnabled = phoneEnabled;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

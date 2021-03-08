@@ -72,7 +72,7 @@ public class EncryptionService {
 
     private SecretKeySpec getSecretKey() throws NoSuchAlgorithmException, InternalServerErrorException {
         // get the secret key from application.properties
-        String secretKey = Util.getValueOfEnvironmentVariable(Environment.AES_SECRET_KEY);
+        String secretKey = Util.getValueOfConfigVariable(Environment.AES_SECRET_KEY);
 
         byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
         MessageDigest sha = MessageDigest.getInstance("SHA-1");

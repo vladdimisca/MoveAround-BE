@@ -17,7 +17,8 @@ public class EmailService {
       mailer.send(Mail.withText(user.getEmail(),
               "Confirm your account on MoveAround",
               "Hello " + user.getFirstName() + ",\n\n" +
-                      "Thanks for signing up with MoveAround! This is your activation code: " + activationCode +
+                      "Thanks for signing up with MoveAround! " +
+                      "This is your activation code, available for 3 minutes: " + activationCode +
                       "\n\nHave a nice day,\nMoveAround Team"));
     }
 }

@@ -4,7 +4,6 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.FailedToParseTheBodyException;
-import licenta.exception.definition.InternalServerErrorException;
 import licenta.model.User;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -19,17 +18,18 @@ public class UserValidator implements Validator<User> {
 
     @Override
     public void validate(User user, ValidationMode validationMode)
-            throws FailedToParseTheBodyException, InternalServerErrorException {
+            throws FailedToParseTheBodyException {
 
-        if (!validationMode.equals(ValidationMode.CREATE)) {
-            throw new InternalServerErrorException(
-                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
-        }
         validateEmail(user.getEmail());
         validateFirstName(user.getFirstName());
         validateLastName(user.getLastName());
         validateFullPhoneNumber(user.getPhoneNumber(), user.getCallingCode());
-        validatePassword(user.getPassword());
+        if (validationMode.equals(ValidationMode.CREATE)) {
+            validatePassword(user.getPassword());
+        }
+        if (validationMode.equals(ValidationMode.UPDATE)) {
+            validateDescription(user.getDescription());
+        }
     }
 
     public void validateEmail(String email) throws FailedToParseTheBodyException {
@@ -65,6 +65,17 @@ public class UserValidator implements Validator<User> {
         }
     }
 
+    public void validateDescription(String description) throws FailedToParseTheBodyException {
+        if (description == null) {
+            throw new FailedToParseTheBodyException(
+                    ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Description is missing");
+        }
+        if (description.length() > 100) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "Description must be at most 100 characters long");
+        }
+    }
+
     public void validatePassword(String password) throws FailedToParseTheBodyException {
         if (password == null) {
             throw new FailedToParseTheBodyException(
@@ -84,6 +95,10 @@ public class UserValidator implements Validator<User> {
         if (callingCode == null) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Calling code is missing");
+        }
+        if (!callingCode.startsWith("+")) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "Calling code should start with +");
         }
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         Phonenumber.PhoneNumber number = new Phonenumber.PhoneNumber();

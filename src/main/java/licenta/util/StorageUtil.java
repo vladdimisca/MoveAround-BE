@@ -16,9 +16,9 @@ public final class StorageUtil {
 
     public static Bucket getDefaultBucket() throws InternalServerErrorException {
         try {
-            String bucketName = Util.getValueOfEnvironmentVariable(Environment.BUCKET_NAME);
+            String bucketName = Util.getValueOfConfigVariable(Environment.BUCKET_NAME);
             InputStream serviceAccount =
-                    new ByteArrayInputStream(Util.getValueOfEnvironmentVariable(Environment.PERMISSIONS).getBytes());
+                    new ByteArrayInputStream(Util.getValueOfConfigVariable(Environment.PERMISSIONS).getBytes());
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseOptions options = FirebaseOptions.builder()

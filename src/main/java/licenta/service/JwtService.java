@@ -15,27 +15,25 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.UUID;
 
 @ApplicationScoped
 public class JwtService {
 
-    public String generateJwt(String email, UUID userId, HashSet<String> roles) throws InternalServerErrorException {
+    public String generateJwt(String email, UUID userId) throws InternalServerErrorException {
         return Jwt
                 .issuer(getIssuer())
                 .upn(email)
-                .groups(roles)
                 .claim(Authentication.ID_CLAIM.getValue(), userId)
                 .sign(getPrivateKey());
     }
 
     private String getIssuer() throws InternalServerErrorException {
-        return Util.getValueOfEnvironmentVariable(Environment.JWT_ISSUER);
+        return Util.getValueOfConfigVariable(Environment.JWT_ISSUER);
     }
 
     private PrivateKey getPrivateKey() throws InternalServerErrorException {
-        String plainPrivateKey = Util.getValueOfEnvironmentVariable(Environment.JWT_PRIVATE_KEY);
+        String plainPrivateKey = Util.getValueOfConfigVariable(Environment.JWT_PRIVATE_KEY);
         try {
             plainPrivateKey = plainPrivateKey
                     .replace("-----BEGIN PRIVATE KEY-----", "")

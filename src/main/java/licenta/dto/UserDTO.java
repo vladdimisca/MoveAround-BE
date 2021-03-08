@@ -15,6 +15,7 @@ public class UserDTO implements Serializable {
     private boolean emailEnabled;
     private boolean phoneEnabled;
     private Date createdAt;
+    private String description;
 
     public UserDTO() {}
 
@@ -96,5 +97,13 @@ public class UserDTO implements Serializable {
 
     public void setPhoneEnabled(boolean phoneEnabled) {
         this.phoneEnabled = phoneEnabled;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
