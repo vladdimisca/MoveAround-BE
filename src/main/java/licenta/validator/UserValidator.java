@@ -119,9 +119,9 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "Profile picture is missing");
         }
-        if (!Base64.isBase64(profilePicture)) {
-            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Profile picture has a wrong format");
-        }
+//        if (!Base64.isBase64(profilePicture)) {
+//            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+//                    Response.Status.BAD_REQUEST, "Profile picture has a wrong format");
+//        }
     }
 }
