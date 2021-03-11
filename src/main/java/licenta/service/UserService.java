@@ -28,8 +28,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @ApplicationScoped
 public class UserService {
@@ -153,7 +151,7 @@ public class UserService {
         userValidator.validate(user, ValidationMode.UPDATE);
 
         boolean isEmailChanged = false;
-        boolean isPhoneNumberChanged = false;
+        // boolean isPhoneNumberChanged = false;
 
         User existingUser = getUserById(userId);
         if (!existingUser.getEmail().equals(user.getEmail())) {
@@ -165,7 +163,7 @@ public class UserService {
                 !existingUser.getPhoneNumber().equals(user.getPhoneNumber())) {
             checkPhoneNumberNotUsed(user.getPhoneNumber(), user.getCallingCode());
             existingUser.setPhoneEnabled(true);
-            isPhoneNumberChanged = true;
+            // isPhoneNumberChanged = true;
         }
         existingUser.setCallingCode(user.getCallingCode());
         existingUser.setPhoneNumber(user.getPhoneNumber());
@@ -199,25 +197,16 @@ public class UserService {
     }
 
     @Transactional
-    public User updateProfilePictureById(UUID userId, String image, JsonWebToken jwt) throws ForbiddenActionException,
+    public User updateProfilePictureById(UUID userId, String base64image, JsonWebToken jwt) throws ForbiddenActionException,
             InternalServerErrorException, FailedToParseTheBodyException, UserNotFoundException {
 
         checkUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId, jwt);
-        userValidator.validateProfilePictureNotNull(image);
+        userValidator.validateProfilePicture(base64image);
 
-        String mimeType;
-        Matcher matcher = Pattern.compile("data:([a-zA-Z0-9]+\\/[a-zA-Z0-9-.+]+).*,.*").matcher(image);
-        if (matcher.find()) {
-            mimeType = matcher.group(1);
-        } else {
-            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Bad image format");
-        }
-        String base64EncodedImageString = image.replace("data:" + mimeType + ";base64,", "");
         Blob blob = StorageUtil
                 .getDefaultBucket()
-                .create(userId.toString(), Base64.getDecoder().decode(base64EncodedImageString), mimeType);
+                .create(userId.toString(), Base64.getDecoder().decode(base64image), "image");
 
         BlobInfo blobInfo = BlobInfo
                 .newBuilder(Util.getValueOfConfigVariable(Environment.BUCKET_NAME), blob.getName()).build();
@@ -230,7 +219,6 @@ public class UserService {
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
         userDAO.updateProfilePictureURLById(userId, signedURL.toString());
-
         return user;
     }
 

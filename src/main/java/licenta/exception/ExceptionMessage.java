@@ -3,7 +3,7 @@ package licenta.exception;
 public enum ExceptionMessage {
 
     INTERNAL_SERVER_ERROR(1, "Internal server error. Oops, something went wrong!"),
-    FAILED_TO_PARSE_THE_BODY(2, "Failed to parse the request body. {0}!"),
+    FAILED_TO_PARSE_THE_BODY(2, "{0}!"),
     EMAIL_ALREADY_EXISTS(3, "This email is already used!"),
     PHONE_NUMBER_ALREADY_EXISTS(4, "This phone number is already used!"),
     USER_NOT_FOUND(5, "This user does not exist!"),

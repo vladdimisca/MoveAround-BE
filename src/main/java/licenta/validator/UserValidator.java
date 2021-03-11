@@ -5,6 +5,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.FailedToParseTheBodyException;
 import licenta.model.User;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
@@ -48,9 +49,9 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "First name is missing");
         }
-        if (firstName.length() < 2) {
+        if (firstName.length() < 2 || firstName.length() > 30) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "First name must be at least two characters long");
+                    Response.Status.BAD_REQUEST, "First name must be between 2 and 30 characters long");
         }
     }
 
@@ -59,9 +60,9 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Last name is missing");
         }
-        if (lastName.length() < 2) {
+        if (lastName.length() < 2 || lastName.length() > 30) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Last name must be at least two characters long");
+                    Response.Status.BAD_REQUEST, "Last name must be between 2 and 30 characters long");
         }
     }
 
@@ -81,9 +82,12 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Password is missing");
         }
+        final String passwordErrorMessage =
+                "Password must be between 8 and 20 characters long and must contain at least one lowercase, " +
+                "one uppercase and one digit";
         if (!password.matches(PASSWORD_PATTERN)) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "This password is not valid");
+                    Response.Status.BAD_REQUEST, passwordErrorMessage);
         }
     }
 
@@ -95,10 +99,6 @@ public class UserValidator implements Validator<User> {
         if (callingCode == null) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Calling code is missing");
-        }
-        if (!callingCode.startsWith("+")) {
-            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Calling code should start with +");
         }
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         Phonenumber.PhoneNumber number = new Phonenumber.PhoneNumber();
@@ -114,10 +114,14 @@ public class UserValidator implements Validator<User> {
         }
     }
 
-    public void validateProfilePictureNotNull(String profilePicture) throws FailedToParseTheBodyException {
+    public void validateProfilePicture(String profilePicture) throws FailedToParseTheBodyException {
         if (profilePicture == null) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "Profile picture is missing");
+        }
+        if (!Base64.isBase64(profilePicture)) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "Profile picture has a wrong format");
         }
     }
 }
