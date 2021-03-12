@@ -4,10 +4,11 @@ import licenta.exception.ExceptionResponseEntity;
 import licenta.exception.definition.AbstractApiException;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 @Provider
-public class ApiExceptionMapper extends AbstractApiExceptionMapper<AbstractApiException> {
+public class ApiExceptionMapper implements ExceptionMapper<AbstractApiException> {
     @Override
     public Response toResponse(AbstractApiException exception) {
         return Response
