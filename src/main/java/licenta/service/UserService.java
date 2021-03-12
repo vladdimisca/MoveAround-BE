@@ -203,25 +203,22 @@ public class UserService {
         checkUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId, jwt);
         userValidator.validateProfilePicture(base64image);
-        System.out.println("Aici da");
-        byte[] decoded = Base64.getDecoder().decode(base64image);
-        System.out.println("Decoded, da");
+
         Blob blob = StorageUtil
                 .getDefaultBucket()
-                .create(userId.toString(), decoded, "image");
-        System.out.println("si aici da");
+                .create(userId.toString(), Base64.getDecoder().decode(base64image));
+
         BlobInfo blobInfo = BlobInfo
                 .newBuilder(Util.getValueOfConfigVariable(Environment.BUCKET_NAME), blob.getName()).build();
-        System.out.println("Al 3-lea da");
+
         URL signedURL = StorageUtil
                 .getDefaultBucket()
                 .getStorage()
                 .signUrl(blobInfo, 365 * 10, TimeUnit.DAYS);
-        System.out.println("Me too");
+
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
         userDAO.updateProfilePictureURLById(userId, signedURL.toString());
-        System.out.println("Asta era");
         return user;
     }
 
