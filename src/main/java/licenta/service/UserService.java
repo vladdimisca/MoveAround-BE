@@ -204,9 +204,11 @@ public class UserService {
         checkIfUserIdMatchesToken(userId, jwt);
         userValidator.validateProfilePicture(base64image);
         System.out.println("Aici da");
+        byte[] decoded = Base64.getDecoder().decode(base64image);
+        System.out.println("Decoded, da");
         Blob blob = StorageUtil
                 .getDefaultBucket()
-                .create(userId.toString(), Base64.getDecoder().decode(base64image), "image");
+                .create(userId.toString(), decoded, "image");
         System.out.println("si aici da");
         BlobInfo blobInfo = BlobInfo
                 .newBuilder(Util.getValueOfConfigVariable(Environment.BUCKET_NAME), blob.getName()).build();
