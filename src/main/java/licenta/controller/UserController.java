@@ -102,6 +102,15 @@ public class UserController {
     }
 
     @POST
+    @Path("/{email}/forgot-password")
+    public Response forgotPassword(@PathParam("email") String email)
+            throws UserNotFoundException, InternalServerErrorException {
+
+        userService.sendNewPasswordByEmail(email);
+        return Response.ok("A new password has been sent to you by email.").build();
+    }
+
+    @POST
     @Authenticated
     @Path("/{userId}/activation/email")
     public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)

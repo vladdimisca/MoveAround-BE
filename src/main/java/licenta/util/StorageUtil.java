@@ -7,7 +7,7 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.StorageClient;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.InternalServerErrorException;
-import licenta.util.enumeration.Environment;
+import licenta.util.enumeration.Configuration;
 
 import javax.ws.rs.core.Response;
 import java.io.*;
@@ -16,9 +16,9 @@ public final class StorageUtil {
 
     public static Bucket getDefaultBucket() throws InternalServerErrorException {
         try {
-            String bucketName = Util.getValueOfConfigVariable(Environment.BUCKET_NAME);
+            String bucketName = Util.getValueOfConfigVariable(Configuration.BUCKET_NAME);
             InputStream serviceAccount =
-                    new ByteArrayInputStream(Util.getValueOfConfigVariable(Environment.PERMISSIONS).getBytes());
+                    new ByteArrayInputStream(Util.getValueOfConfigVariable(Configuration.PERMISSIONS).getBytes());
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseOptions options = FirebaseOptions.builder()

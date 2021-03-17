@@ -11,7 +11,7 @@ import licenta.model.User;
 import licenta.util.StorageUtil;
 import licenta.util.Util;
 import licenta.util.enumeration.Authentication;
-import licenta.util.enumeration.Environment;
+import licenta.util.enumeration.Configuration;
 import licenta.validator.UserValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -209,7 +209,7 @@ public class UserService {
                 .create(userId.toString(), Base64.getDecoder().decode(base64image), "image");
 
         BlobInfo blobInfo = BlobInfo
-                .newBuilder(Util.getValueOfConfigVariable(Environment.BUCKET_NAME), blob.getName()).build();
+                .newBuilder(Util.getValueOfConfigVariable(Configuration.BUCKET_NAME), blob.getName()).build();
 
         URL signedURL = StorageUtil
                 .getDefaultBucket()
@@ -235,6 +235,17 @@ public class UserService {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.FORBIDDEN, "This id does not match the token");
         }
+    }
+
+    @Transactional
+    public void sendNewPasswordByEmail(String email) throws UserNotFoundException, InternalServerErrorException {
+        User user = userDAO.getUserByEmail(email).orElseThrow(() ->
+                new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
+
+        String newPassword = SecureRandomService.generateRandomPassword();
+        user.setPassword(encryptionService.encrypt(newPassword));
+        userDAO.persist(user);
+        emailService.sendNewPassword(user, newPassword);
     }
 
     @Transactional

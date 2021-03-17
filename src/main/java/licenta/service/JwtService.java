@@ -5,7 +5,7 @@ import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.InternalServerErrorException;
 import licenta.util.Util;
 import licenta.util.enumeration.Authentication;
-import licenta.util.enumeration.Environment;
+import licenta.util.enumeration.Configuration;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 
@@ -29,11 +29,11 @@ public class JwtService {
     }
 
     private String getIssuer() throws InternalServerErrorException {
-        return Util.getValueOfConfigVariable(Environment.JWT_ISSUER);
+        return Util.getValueOfConfigVariable(Configuration.JWT_ISSUER);
     }
 
     private PrivateKey getPrivateKey() throws InternalServerErrorException {
-        String plainPrivateKey = Util.getValueOfConfigVariable(Environment.JWT_PRIVATE_KEY);
+        String plainPrivateKey = Util.getValueOfConfigVariable(Configuration.JWT_PRIVATE_KEY);
         try {
             plainPrivateKey = plainPrivateKey
                     .replace("-----BEGIN PRIVATE KEY-----", "")

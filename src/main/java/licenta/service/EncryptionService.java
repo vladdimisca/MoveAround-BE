@@ -3,7 +3,7 @@ package licenta.service;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.InternalServerErrorException;
 import licenta.util.Util;
-import licenta.util.enumeration.Environment;
+import licenta.util.enumeration.Configuration;
 import org.wildfly.security.password.PasswordFactory;
 import org.wildfly.security.password.WildFlyElytronPasswordProvider;
 import org.wildfly.security.password.interfaces.BCryptPassword;
@@ -72,7 +72,7 @@ public class EncryptionService {
 
     private SecretKeySpec getSecretKey() throws NoSuchAlgorithmException, InternalServerErrorException {
         // get the secret key from application.properties
-        String secretKey = Util.getValueOfConfigVariable(Environment.AES_SECRET_KEY);
+        String secretKey = Util.getValueOfConfigVariable(Configuration.AES_SECRET_KEY);
 
         byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
         MessageDigest sha = MessageDigest.getInstance("SHA-1");

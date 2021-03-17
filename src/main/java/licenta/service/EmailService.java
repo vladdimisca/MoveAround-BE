@@ -21,4 +21,13 @@ public class EmailService {
                       "This is your activation code, available for 3 minutes: " + activationCode +
                       "\n\nHave a nice day,\nMoveAround Team"));
     }
+
+    public void sendNewPassword(User user, String newPassword) {
+        mailer.send(Mail.withText(user.getEmail(),
+                "MoveAround - reset password",
+                "Hello " + user.getFirstName() + ",\n\n" +
+                        "This is your new password: " + newPassword + "\n" +
+                        "For security reasons, we recommend to change it as soon as possible!" +
+                        "\n\nHave a nice day,\nMoveAround Team"));
+    }
 }

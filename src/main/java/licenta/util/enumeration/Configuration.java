@@ -1,6 +1,6 @@
 package licenta.util.enumeration;
 
-public enum Environment {
+public enum Configuration {
 
     JWT_ISSUER("mp.jwt.verify.issuer"),
     JWT_PRIVATE_KEY("jwt.private-key"),
@@ -10,7 +10,7 @@ public enum Environment {
 
     private final String value;
 
-    Environment(String value) {
+    Configuration(String value) {
         this.value = value;
     }
 
