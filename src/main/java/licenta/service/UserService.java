@@ -262,15 +262,16 @@ public class UserService {
                     Response.Status.NOT_FOUND, "There is no activation code generated for this email");
         }
         try {
+            if (!encryptionService.decryptAES(activationCode.getEmailCode()).equals(codeGuess)) {
+                throw new WrongActivationCodeException(
+                        ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
+            }
+
             long millisecondsPassed = (new java.util.Date()).getTime() - activationCode.getEmailCreatedAt().getTime();
             long difference = TimeUnit.MINUTES.convert(millisecondsPassed , TimeUnit.MILLISECONDS);
             if (difference > 3) {
                 throw new ActivationCodeExpiredException(
                         ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
-            }
-            if (!encryptionService.decryptAES(activationCode.getEmailCode()).equals(codeGuess)) {
-                throw new WrongActivationCodeException(
-                        ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
             }
             user.setEmailEnabled(true);
         } catch (NoSuchAlgorithmException | InternalServerErrorException | InvalidKeyException | NoSuchPaddingException

@@ -100,6 +100,10 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Calling code is missing");
         }
+        if (callingCode.startsWith("+")) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST,"Calling code should not start with '+'");
+        }
         PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
         Phonenumber.PhoneNumber number = new Phonenumber.PhoneNumber();
         try {
@@ -119,9 +123,5 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "Profile picture is missing");
         }
-//        if (!Base64.isBase64(profilePicture)) {
-//            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-//                    Response.Status.BAD_REQUEST, "Profile picture has a wrong format");
-//        }
     }
 }
