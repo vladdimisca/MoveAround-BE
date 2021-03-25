@@ -1,9 +1,12 @@
 package licenta.model;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -41,6 +44,10 @@ public class User {
 
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
+
+    @OneToMany(mappedBy = "user")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Car> cars;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "activation_code_id", referencedColumnName = "id")
@@ -156,5 +163,13 @@ public class User {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<Car> getCars() {
+        return cars;
+    }
+
+    public void setCars(List<Car> cars) {
+        this.cars = cars;
     }
 }

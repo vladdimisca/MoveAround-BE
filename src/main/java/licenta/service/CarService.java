@@ -1,0 +1,76 @@
+package licenta.service;
+
+import licenta.dao.CarDAO;
+import licenta.exception.ExceptionMessage;
+import licenta.exception.definition.CarNotFoundException;
+import licenta.exception.definition.ForbiddenActionException;
+import licenta.exception.definition.LicensePlateAlreadyExistsException;
+import licenta.exception.definition.UserNotFoundException;
+import licenta.model.Car;
+import licenta.util.enumeration.Authentication;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.UUID;
+
+@ApplicationScoped
+public class CarService {
+
+    @Inject
+    CarDAO carDAO;
+
+    @Inject
+    UserService userService;
+
+    @Inject
+    JsonWebToken jwt;
+
+    @Transactional
+    public Car createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException {
+        if (carDAO.getCarByLicensePlate(car.getLicensePlate()).isPresent()) {
+            throw new LicensePlateAlreadyExistsException(
+                    ExceptionMessage.LICENSE_PLATE_ALREADY_EXISTS, Response.Status.CONFLICT);
+        }
+
+        car.setUser(userService.getUserById(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()))));
+        carDAO.persist(car);
+        return car;
+    }
+
+    @Transactional
+    public Car updateCarById(Integer carId, Car car)
+            throws CarNotFoundException, ForbiddenActionException, LicensePlateAlreadyExistsException {
+
+        Car existingCar = getCarById(carId);
+        userService.checkIfUserIdMatchesToken(existingCar.getUser().getId());
+
+        if (!existingCar.getLicensePlate().equals(car.getLicensePlate())
+                && carDAO.getCarByLicensePlate(car.getLicensePlate()).isPresent()) {
+            throw new LicensePlateAlreadyExistsException(
+                    ExceptionMessage.LICENSE_PLATE_ALREADY_EXISTS, Response.Status.CONFLICT);
+        }
+
+        existingCar.setColor(car.getColor());
+        existingCar.setLicensePlate(car.getLicensePlate());
+        existingCar.setMake(car.getMake());
+        existingCar.setModel(car.getModel());
+        existingCar.setYear(car.getYear());
+        carDAO.persist(existingCar);
+
+        return existingCar;
+    }
+
+    public Car getCarById(Integer carId) throws CarNotFoundException {
+        return carDAO.getCarById(carId).orElseThrow(() ->
+                new CarNotFoundException(ExceptionMessage.CAR_NOT_FOUND, Response.Status.NOT_FOUND));
+    }
+
+    public List<Car> getCarsByUserId(UUID userId) throws UserNotFoundException {
+        userService.checkUserExistenceById(userId);
+        return carDAO.getCarsByUserId(userId);
+    }
+}

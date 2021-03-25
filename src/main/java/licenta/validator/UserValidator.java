@@ -5,7 +5,6 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.FailedToParseTheBodyException;
 import licenta.model.User;
-import org.apache.commons.codec.binary.Base64;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;

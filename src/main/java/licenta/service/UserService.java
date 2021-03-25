@@ -53,6 +53,9 @@ public class UserService {
     @Inject
     EmailService emailService;
 
+    @Inject
+    JsonWebToken jwt;
+
     private void checkEmailNotUsed(String email) throws EmailAlreadyExistsException {
         if (userDAO.getUserByEmail(email).isPresent()) {
             throw new EmailAlreadyExistsException(ExceptionMessage.EMAIL_ALREADY_EXISTS, Response.Status.CONFLICT);
@@ -142,12 +145,12 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserById(UUID userId, User user, JsonWebToken jwt)
+    public void updateUserById(UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, EmailAlreadyExistsException,
             UserNotFoundException, PhoneNumberAlreadyExistsException, InternalServerErrorException {
 
         checkUserExistenceById(userId);
-        checkIfUserIdMatchesToken(userId, jwt);
+        checkIfUserIdMatchesToken(userId);
         userValidator.validate(user, ValidationMode.UPDATE);
 
         boolean isEmailChanged = false;
@@ -182,12 +185,12 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePasswordById(UUID userId, String oldPassword, String newPassword, JsonWebToken jwt)
+    public void updatePasswordById(UUID userId, String oldPassword, String newPassword)
             throws ForbiddenActionException, FailedToParseTheBodyException, WrongPasswordException,
             UserNotFoundException, InternalServerErrorException {
 
         checkUserExistenceById(userId);
-        checkIfUserIdMatchesToken(userId, jwt);
+        checkIfUserIdMatchesToken(userId);
         User persistedUser = getUserById(userId);
         if (!encryptionService.passwordMatchesHash(persistedUser.getPassword(), oldPassword)) {
             throw new WrongPasswordException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
@@ -197,11 +200,11 @@ public class UserService {
     }
 
     @Transactional
-    public User updateProfilePictureById(UUID userId, String base64image, JsonWebToken jwt) throws ForbiddenActionException,
+    public User updateProfilePictureById(UUID userId, String base64image) throws ForbiddenActionException,
             InternalServerErrorException, FailedToParseTheBodyException, UserNotFoundException {
 
         checkUserExistenceById(userId);
-        checkIfUserIdMatchesToken(userId, jwt);
+        checkIfUserIdMatchesToken(userId);
         userValidator.validateProfilePicture(base64image);
 
         Blob blob = StorageUtil
@@ -223,17 +226,17 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUserById(UUID userId, JsonWebToken jwt) throws ForbiddenActionException, UserNotFoundException {
-        checkIfUserIdMatchesToken(userId, jwt);
+    public void deleteUserById(UUID userId) throws ForbiddenActionException, UserNotFoundException {
+        checkIfUserIdMatchesToken(userId);
         User userToDelete = getUserById(userId);
         userDAO.delete(userToDelete);
         activationCodeDAO.delete(userToDelete.getActivationCode());
     }
 
-    private void checkIfUserIdMatchesToken(UUID userId, JsonWebToken jwt) throws ForbiddenActionException {
+    public void checkIfUserIdMatchesToken(UUID userId) throws ForbiddenActionException {
         if (!userId.equals(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue())))) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
-                    Response.Status.FORBIDDEN, "This id does not match the token");
+                    Response.Status.FORBIDDEN, "User id does not match the token");
         }
     }
 
@@ -249,11 +252,11 @@ public class UserService {
     }
 
     @Transactional
-    public void verifyCodeAndEnableEmailById(UUID userId, String codeGuess, JsonWebToken jwt)
+    public void verifyCodeAndEnableEmailById(UUID userId, String codeGuess)
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
             ActivationCodeNotFoundException, ActivationCodeExpiredException, ForbiddenActionException {
 
-        checkIfUserIdMatchesToken(userId, jwt);
+        checkIfUserIdMatchesToken(userId);
 
         User user = getUserById(userId);
         ActivationCode activationCode = user.getActivationCode();
@@ -283,10 +286,10 @@ public class UserService {
     }
 
     @Transactional
-    public void resendEmailCodeById(UUID userId, JsonWebToken jwt) throws UserNotFoundException, ActivationCodeNotFoundException,
+    public void resendEmailCodeById(UUID userId) throws UserNotFoundException, ActivationCodeNotFoundException,
             InternalServerErrorException, ForbiddenActionException {
 
-        checkIfUserIdMatchesToken(userId, jwt);
+        checkIfUserIdMatchesToken(userId);
 
         User user = getUserById(userId);
         ActivationCode activationCode = user.getActivationCode();

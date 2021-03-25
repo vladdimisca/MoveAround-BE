@@ -8,7 +8,6 @@ import licenta.model.ActivationCode;
 import licenta.model.User;
 import licenta.service.UserService;
 
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jose4j.json.internal.json_simple.JSONObject;
 
 import javax.annotation.security.PermitAll;
@@ -30,9 +29,6 @@ public class UserController {
 
     @Inject
     UserMapper userMapper;
-
-    @Inject
-    JsonWebToken jwt;
 
     @POST
     @PermitAll
@@ -65,7 +61,7 @@ public class UserController {
             throws UserNotFoundException, WrongPasswordException, ForbiddenActionException,
             FailedToParseTheBodyException, InternalServerErrorException {
 
-        userService.updatePasswordById(userId, (String)body.get("oldPassword"), (String)body.get("newPassword"), jwt);
+        userService.updatePasswordById(userId, (String)body.get("oldPassword"), (String)body.get("newPassword"));
         return Response.noContent().build();
     }
 
@@ -77,7 +73,7 @@ public class UserController {
             FailedToParseTheBodyException, UserNotFoundException {
 
         return Response.ok(userMapper.fromUser(
-                        userService.updateProfilePictureById(userId, profilePicture, jwt))).build();
+                        userService.updateProfilePictureById(userId, profilePicture))).build();
     }
 
     @PUT
@@ -87,7 +83,7 @@ public class UserController {
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
             EmailAlreadyExistsException, PhoneNumberAlreadyExistsException, InternalServerErrorException {
 
-        userService.updateUserById(userId, user, jwt);
+        userService.updateUserById(userId, user);
         return Response.ok(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
@@ -97,7 +93,7 @@ public class UserController {
     public Response deleteUserById(@PathParam("userId") UUID userId)
             throws ForbiddenActionException, UserNotFoundException {
 
-        userService.deleteUserById(userId, jwt);
+        userService.deleteUserById(userId);
         return Response.noContent().build();
     }
 
@@ -117,7 +113,7 @@ public class UserController {
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
             ActivationCodeNotFoundException, ActivationCodeExpiredException, ForbiddenActionException {
 
-        userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode(), jwt);
+        userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
         return Response.noContent().build();
     }
 
@@ -127,7 +123,7 @@ public class UserController {
     public Response resendEmailCodeByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
             InternalServerErrorException, ActivationCodeNotFoundException, ForbiddenActionException {
 
-        userService.resendEmailCodeById(userId, jwt);
+        userService.resendEmailCodeById(userId);
         return Response.noContent().build();
     }
 }
