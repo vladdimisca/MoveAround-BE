@@ -23,5 +23,4 @@ public class CarDAO implements PanacheRepository<Car> {
     public Optional<Car> getCarByLicensePlate(String licensePlate) {
         return find("license_plate = ?1", licensePlate).firstResultOptional();
     }
-
 }

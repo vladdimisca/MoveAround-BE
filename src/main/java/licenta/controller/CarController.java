@@ -1,10 +1,7 @@
 package licenta.controller;
 
 import io.quarkus.security.Authenticated;
-import licenta.exception.definition.CarNotFoundException;
-import licenta.exception.definition.ForbiddenActionException;
-import licenta.exception.definition.LicensePlateAlreadyExistsException;
-import licenta.exception.definition.UserNotFoundException;
+import licenta.exception.definition.*;
 import licenta.mapper.CarMapper;
 import licenta.model.Car;
 import licenta.service.CarService;
@@ -28,14 +25,16 @@ public class CarController {
     CarService carService;
 
     @POST
-    public Response createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException {
+    public Response createCar(Car car)
+            throws UserNotFoundException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
+
         return Response.ok(CarMapper.mapper.fromCar(carService.createCar(car))).build();
     }
 
     @PUT
     @Path("/{carId}")
-    public Response updateCarById(@PathParam("carId") Integer carId, Car car)
-            throws CarNotFoundException, ForbiddenActionException, LicensePlateAlreadyExistsException {
+    public Response updateCarById(@PathParam("carId") Integer carId, Car car) throws CarNotFoundException,
+            ForbiddenActionException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
 
         return Response.ok(CarMapper.mapper.fromCar(carService.updateCarById(carId, car))).build();
     }
@@ -52,5 +51,15 @@ public class CarController {
     public Response getAllCars(@PathParam("userId") UUID userId) throws UserNotFoundException {
         List<Car> cars = carService.getCarsByUserId(userId);
         return Response.ok(cars.stream().map(CarMapper.mapper::fromCar).collect(Collectors.toList())).build();
+    }
+
+    @DELETE
+    @Authenticated
+    @Path("/{carId}")
+    public Response deleteCarById(@PathParam("carId") Integer carId)
+            throws CarNotFoundException, ForbiddenActionException {
+
+        carService.deleteCarById(carId);
+        return Response.noContent().build();
     }
 }

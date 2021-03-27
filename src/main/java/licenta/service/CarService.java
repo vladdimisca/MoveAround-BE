@@ -2,12 +2,11 @@ package licenta.service;
 
 import licenta.dao.CarDAO;
 import licenta.exception.ExceptionMessage;
-import licenta.exception.definition.CarNotFoundException;
-import licenta.exception.definition.ForbiddenActionException;
-import licenta.exception.definition.LicensePlateAlreadyExistsException;
-import licenta.exception.definition.UserNotFoundException;
+import licenta.exception.definition.*;
 import licenta.model.Car;
 import licenta.util.enumeration.Authentication;
+import licenta.validator.CarValidator;
+import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -29,21 +28,31 @@ public class CarService {
     @Inject
     JsonWebToken jwt;
 
+    @Inject
+    CarValidator carValidator;
+
     @Transactional
-    public Car createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException {
+    public Car createCar(Car car)
+            throws UserNotFoundException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
+
+        carValidator.validate(car, ValidationMode.CREATE);
+
         if (carDAO.getCarByLicensePlate(car.getLicensePlate()).isPresent()) {
             throw new LicensePlateAlreadyExistsException(
                     ExceptionMessage.LICENSE_PLATE_ALREADY_EXISTS, Response.Status.CONFLICT);
         }
 
+        car.setId(0);
         car.setUser(userService.getUserById(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()))));
         carDAO.persist(car);
         return car;
     }
 
     @Transactional
-    public Car updateCarById(Integer carId, Car car)
-            throws CarNotFoundException, ForbiddenActionException, LicensePlateAlreadyExistsException {
+    public Car updateCarById(Integer carId, Car car) throws CarNotFoundException, ForbiddenActionException,
+            LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
+
+        carValidator.validate(car, ValidationMode.UPDATE);
 
         Car existingCar = getCarById(carId);
         userService.checkIfUserIdMatchesToken(existingCar.getUser().getId());
@@ -72,5 +81,12 @@ public class CarService {
     public List<Car> getCarsByUserId(UUID userId) throws UserNotFoundException {
         userService.checkUserExistenceById(userId);
         return carDAO.getCarsByUserId(userId);
+    }
+
+    @Transactional
+    public void deleteCarById(Integer carId) throws CarNotFoundException, ForbiddenActionException {
+        Car car = getCarById(carId);
+        userService.checkIfUserIdMatchesToken(car.getUser().getId());
+        carDAO.delete(car);
     }
 }
