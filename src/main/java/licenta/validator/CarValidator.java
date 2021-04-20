@@ -11,9 +11,8 @@ import java.util.Arrays;
 
 @ApplicationScoped
 public class CarValidator implements Validator<Car> {
-    // TODO: create a map with color: color_value
     private static final String[] COLORS =
-            {"Blue", "Black", "White", "Red", "Green", "Brown", "Orange", "Violet", "Grey", "Pink", "Yellow"};
+        {"black", "white", "grey", "red", "blue", "green", "brown", "beige", "orange", "yellow", "pink", "darkblue"};
 
     @Override
     public void validate(Car car, ValidationMode validationMode) throws FailedToParseTheBodyException {
@@ -68,14 +67,13 @@ public class CarValidator implements Validator<Car> {
         }
     }
 
-    int currentYear = Year.now().getValue();
-
-
     public void validateYear(Integer year) throws FailedToParseTheBodyException {
         if (year == null) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Year is missing");
         }
+
+        int currentYear = Year.now().getValue();
         if (year < currentYear - 25 || year > currentYear) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY,

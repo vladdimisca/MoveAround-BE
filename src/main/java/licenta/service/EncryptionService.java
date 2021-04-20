@@ -71,7 +71,7 @@ public class EncryptionService {
     }
 
     private SecretKeySpec getSecretKey() throws NoSuchAlgorithmException, InternalServerErrorException {
-        // get the secret key from application.properties
+        // get the secret key from config
         String secretKey = Util.getValueOfConfigVariable(Configuration.AES_SECRET_KEY);
 
         byte[] key = secretKey.getBytes(StandardCharsets.UTF_8);
