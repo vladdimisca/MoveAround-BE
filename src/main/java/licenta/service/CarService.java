@@ -32,10 +32,15 @@ public class CarService {
     CarValidator carValidator;
 
     @Transactional
-    public Car createCar(Car car)
-            throws UserNotFoundException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
+    public Car createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException,
+            FailedToParseTheBodyException, ForbiddenActionException {
 
         carValidator.validate(car, ValidationMode.CREATE);
+
+        if (getCarsByUserId(car.getUser().getId()).size() >= 5) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "You can not have more than 5 cars");
+        }
 
         if (carDAO.getCarByLicensePlate(car.getLicensePlate()).isPresent()) {
             throw new LicensePlateAlreadyExistsException(

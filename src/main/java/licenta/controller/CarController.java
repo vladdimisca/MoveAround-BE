@@ -25,8 +25,8 @@ public class CarController {
     CarService carService;
 
     @POST
-    public Response createCar(Car car)
-            throws UserNotFoundException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
+    public Response createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException,
+            FailedToParseTheBodyException, ForbiddenActionException {
 
         return Response.ok(CarMapper.mapper.fromCar(carService.createCar(car))).build();
     }
