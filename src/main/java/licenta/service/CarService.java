@@ -36,19 +36,19 @@ public class CarService {
             FailedToParseTheBodyException, ForbiddenActionException {
 
         carValidator.validate(car, ValidationMode.CREATE);
+        UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
 
-        if (getCarsByUserId(car.getUser().getId()).size() >= 5) {
+        if (getCarsByUserId(userId).size() >= 5) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.FORBIDDEN, "You can not have more than 5 cars");
         }
-
         if (carDAO.getCarByLicensePlate(car.getLicensePlate()).isPresent()) {
             throw new LicensePlateAlreadyExistsException(
                     ExceptionMessage.LICENSE_PLATE_ALREADY_EXISTS, Response.Status.CONFLICT);
         }
 
         car.setId(0);
-        car.setUser(userService.getUserById(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()))));
+        car.setUser(userService.getUserById(userId));
         carDAO.persist(car);
         return car;
     }
