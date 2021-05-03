@@ -11,7 +11,6 @@ import org.mapstruct.factory.Mappers;
 public interface RouteMapper {
     RouteMapper mapper = Mappers.getMapper(RouteMapper.class);
 
-    @Mapping(source = "user", target = "userId", qualifiedBy = RouteMapperUtil.User.class)
     @Mapping(source = "car", target = "licensePlate", qualifiedBy = RouteMapperUtil.Car.class)
     RouteDTO fromRoute(Route route);
 }

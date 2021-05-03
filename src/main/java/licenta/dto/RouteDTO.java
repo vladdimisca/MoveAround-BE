@@ -1,7 +1,6 @@
 package licenta.dto;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class RouteDTO {
 
@@ -13,7 +12,7 @@ public class RouteDTO {
     private double stopLongitude;
     private double price;
     private int availableSeats;
-    private UUID userId;
+    private UserDTO user;
     private String licensePlate;
 
     public int getId() {
@@ -80,12 +79,12 @@ public class RouteDTO {
         this.availableSeats = availableSeats;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UserDTO getUser() {
+        return user;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
     public String getLicensePlate() {
