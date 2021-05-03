@@ -13,7 +13,8 @@ public enum ExceptionMessage {
     WRONG_ACTIVATION_CODE(9, "This activation code is wrong!"),
     ACTIVATION_CODE_EXPIRED(10, "This activation code has expired!"),
     CAR_NOT_FOUND(11, "This car does not exist!"),
-    LICENSE_PLATE_ALREADY_EXISTS(12, "There is another car with this license plate!");
+    LICENSE_PLATE_ALREADY_EXISTS(12, "There is another car with this license plate!"),
+    ROUTE_NOT_FOUND(13, "This route does not exist!");
 
     private final int errorCode;
     private final String errorMessage;

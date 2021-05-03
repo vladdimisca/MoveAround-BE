@@ -1,7 +1,11 @@
 package licenta.model;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "cars")
@@ -28,6 +32,10 @@ public class Car {
     @ManyToOne(optional = false)
     @JsonbTransient
     private User user;
+
+    @OneToMany(mappedBy = "car")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Route> routes;
 
     public int getId() {
         return id;
@@ -83,5 +91,17 @@ public class Car {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public List<Route> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<Route> routes) {
+        this.routes = routes;
     }
 }

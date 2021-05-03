@@ -49,6 +49,10 @@ public class User {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Car> cars;
 
+    @OneToMany(mappedBy = "user")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Route> routes;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "activation_code_id", referencedColumnName = "id")
     private ActivationCode activationCode;
@@ -171,5 +175,13 @@ public class User {
 
     public void setCars(List<Car> cars) {
         this.cars = cars;
+    }
+
+    public List<Route> getRoutes() {
+        return routes;
+    }
+
+    public void setRoutes(List<Route> routes) {
+        this.routes = routes;
     }
 }
