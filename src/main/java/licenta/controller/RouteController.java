@@ -48,6 +48,7 @@ public class RouteController {
     }
 
     @GET
+    @Path("/matching")
     @Authenticated
     public Response getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
         List<Route> routes = routeService.getPossibleRoutes(route);
