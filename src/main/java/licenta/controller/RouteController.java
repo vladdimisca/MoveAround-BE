@@ -47,7 +47,7 @@ public class RouteController {
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 
-    @GET
+    @POST
     @Path("/matching")
     @Authenticated
     public Response getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
