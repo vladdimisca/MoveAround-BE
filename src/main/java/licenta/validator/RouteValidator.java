@@ -14,7 +14,7 @@ public class RouteValidator implements Validator<Route> {
     @Override
     public void validate(Route route, ValidationMode validationMode) throws FailedToParseTheBodyException {
         validateStartDate(route.getStartDate());
-        validatePriceByDistance(route.getPrice());
+        validatePrice(route);
         validateAvailableSeats(route.getAvailableSeats());
         validateCoordinates(
                 route.getStartLatitude(), route.getStartLongitude(), route.getStopLatitude(), route.getStopLongitude());
@@ -33,12 +33,16 @@ public class RouteValidator implements Validator<Route> {
         }
     }
 
-    public void validatePriceByDistance(Double price) throws FailedToParseTheBodyException {
-        if (price == null) {
+    public void validatePrice(Route route) throws FailedToParseTheBodyException {
+        if (route.getPrice() == null) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Price is missing");
         }
-        // TODO: validate
+        if (route.getPrice() < 0) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "Price must be a positive number");
+        }
+
     }
 
     public void validateAvailableSeats(Integer availableSeats) throws FailedToParseTheBodyException {

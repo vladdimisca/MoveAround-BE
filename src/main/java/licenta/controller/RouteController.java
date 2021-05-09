@@ -46,4 +46,11 @@ public class RouteController {
         List<Route> routes = routeService.getRoutesByUserId(userId);
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
+
+    @GET
+    @Authenticated
+    public Response getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
+        List<Route> routes = routeService.getPossibleRoutes(route);
+        return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
+    }
 }

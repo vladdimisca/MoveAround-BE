@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class RouteService {
@@ -65,5 +66,11 @@ public class RouteService {
     public List<Route> getRoutesByUserId(UUID userId) throws UserNotFoundException {
         userService.checkUserExistenceById(userId);
         return routeDAO.getRoutesByUserId(userId);
+    }
+
+    public List<Route> getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
+        routeValidator.validateStartDate(route.getStartDate());
+        UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
+        return routeDAO.getPossibleRoutes(userId, route.getStartDate());
     }
 }

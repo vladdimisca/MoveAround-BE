@@ -33,7 +33,7 @@ public class Route {
     private int availableSeats;
 
     @Column(nullable = false)
-    private double price;
+    private Double price;
 
     @ManyToOne(optional = false)
     private Car car;
@@ -114,11 +114,11 @@ public class Route {
         this.user = user;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
