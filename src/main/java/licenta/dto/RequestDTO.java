@@ -11,8 +11,8 @@ public class RequestDTO {
     private double stopLatitude;
     private double stopLongitude;
     private Status status;
-    private UUID userId;
-    private Integer routeId;
+    private UserDTO user;
+    private RouteDTO route;
 
     public int getId() {
         return id;
@@ -62,19 +62,19 @@ public class RequestDTO {
         this.status = status;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UserDTO getUser() {
+        return user;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUser(UserDTO user) {
+        this.user = user;
     }
 
-    public Integer getRouteId() {
-        return routeId;
+    public RouteDTO getRoute() {
+        return route;
     }
 
-    public void setRouteId(Integer routeId) {
-        this.routeId = routeId;
+    public void setRoute(RouteDTO route) {
+        this.route = route;
     }
 }
