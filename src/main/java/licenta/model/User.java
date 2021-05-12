@@ -53,6 +53,10 @@ public class User {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Route> routes;
 
+    @OneToMany(mappedBy = "user")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Request> requests;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "activation_code_id", referencedColumnName = "id")
     private ActivationCode activationCode;
@@ -183,5 +187,13 @@ public class User {
 
     public void setRoutes(List<Route> routes) {
         this.routes = routes;
+    }
+
+    public List<Request> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<Request> requests) {
+        this.requests = requests;
     }
 }

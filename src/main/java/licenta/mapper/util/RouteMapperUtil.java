@@ -9,18 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 public class RouteMapperUtil {
-
-    @Qualifier
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface User {
-    }
-
-    @User
-    public UserDTO user(licenta.model.User user) {
-        return new UserDTO();
-    }
-
     @Qualifier
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.SOURCE)

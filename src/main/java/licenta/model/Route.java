@@ -1,9 +1,13 @@
 package licenta.model;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.json.bind.annotation.JsonbDateFormat;
 import javax.json.bind.annotation.JsonbTransient;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "routes")
@@ -41,6 +45,10 @@ public class Route {
     @ManyToOne(optional = false)
     @JsonbTransient
     private User user;
+
+    @OneToMany(mappedBy = "route")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Request> requests;
 
     public int getId() {
         return id;
@@ -122,4 +130,11 @@ public class Route {
         this.price = price;
     }
 
+    public List<Request> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<Request> requests) {
+        this.requests = requests;
+    }
 }
