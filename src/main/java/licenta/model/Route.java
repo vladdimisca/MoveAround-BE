@@ -33,18 +33,25 @@ public class Route {
     @Column(name = "stop_longitude",nullable = false)
     private double stopLongitude;
 
-    @Column(name="available_seats", nullable = false)
+    @Column(name="available_seats")
     private int availableSeats;
 
     @Column(nullable = false)
     private Double price;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     private Car car;
+
+    @ManyToOne
+    private Route parentRoute;
 
     @ManyToOne(optional = false)
     @JsonbTransient
     private User user;
+
+    @OneToMany(mappedBy = "parentRoute")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Route> subRoutes;
 
     @OneToMany(mappedBy = "route")
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -136,5 +143,21 @@ public class Route {
 
     public void setRequests(List<Request> requests) {
         this.requests = requests;
+    }
+
+    public Route getParentRoute() {
+        return parentRoute;
+    }
+
+    public void setParentRoute(Route parentRoute) {
+        this.parentRoute = parentRoute;
+    }
+
+    public List<Route> getSubRoutes() {
+        return subRoutes;
+    }
+
+    public void setSubRoutes(List<Route> subRoutes) {
+        this.subRoutes = subRoutes;
     }
 }

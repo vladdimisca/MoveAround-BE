@@ -1,10 +1,7 @@
 package licenta.controller;
 
 import io.quarkus.security.Authenticated;
-import licenta.exception.definition.FailedToParseTheBodyException;
-import licenta.exception.definition.ForbiddenActionException;
-import licenta.exception.definition.RouteNotFoundException;
-import licenta.exception.definition.UserNotFoundException;
+import licenta.exception.definition.*;
 import licenta.mapper.RequestMapper;
 import licenta.model.Request;
 import licenta.service.RequestService;
@@ -33,6 +30,7 @@ public class RequestController {
     }
 
     @GET
+    @Authenticated
     @Path("/sent")
     public Response getSentRequests() {
         List<Request> sentRequests = requestService.getSentRequests();
@@ -41,11 +39,32 @@ public class RequestController {
     }
 
     @GET
+    @Authenticated
     @Path("received")
     public Response getReceivedPendingRequests() throws UserNotFoundException {
         List<Request> receivedPending = requestService.getReceivedPendingRequests();
         return Response.ok(
                 receivedPending.stream().map(RequestMapper.mapper::fromRequest).collect(Collectors.toList())).build();
+    }
+
+    @POST
+    @Authenticated
+    @Path("/{requestId}/accept")
+    public Response acceptRequest(@PathParam("requestId") Integer requestId)
+            throws ForbiddenActionException, RequestNotFoundException {
+
+        requestService.acceptRequest(requestId);
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Authenticated
+    @Path("/{requestId}/reject")
+    public Response rejectRequest(@PathParam("requestId") Integer requestId)
+            throws ForbiddenActionException, RequestNotFoundException {
+
+        requestService.rejectRequest(requestId);
+        return Response.noContent().build();
     }
 
 }

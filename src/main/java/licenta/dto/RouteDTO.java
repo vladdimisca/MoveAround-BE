@@ -13,7 +13,8 @@ public class RouteDTO {
     private double price;
     private int availableSeats;
     private UserDTO user;
-    private String licensePlate;
+    private CarDTO car;
+    private RouteDTO parentRoute;
 
     public int getId() {
         return id;
@@ -87,11 +88,19 @@ public class RouteDTO {
         this.user = user;
     }
 
-    public String getLicensePlate() {
-        return licensePlate;
+    public CarDTO getCar() {
+        return car;
     }
 
-    public void setLicensePlate(String licensePlate) {
-        this.licensePlate = licensePlate;
+    public void setCar(CarDTO car) {
+        this.car = car;
+    }
+
+    public RouteDTO getParentRoute() {
+        return parentRoute;
+    }
+
+    public void setParentRoute(RouteDTO parentRoute) {
+        this.parentRoute = parentRoute;
     }
 }
