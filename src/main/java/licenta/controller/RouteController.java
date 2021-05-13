@@ -41,9 +41,17 @@ public class RouteController {
 
     @GET
     @Authenticated
-    @Path("/user/{userId}")
-    public Response getRoutesByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException {
-        List<Route> routes = routeService.getRoutesByUserId(userId);
+    @Path("/user/{userId}/driver")
+    public Response getRoutesAsDriver(@PathParam("userId") UUID userId) throws UserNotFoundException {
+        List<Route> routes = routeService.getRoutesAsDriver(userId);
+        return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
+    }
+
+    @GET
+    @Authenticated
+    @Path("/user/{userId}/passenger")
+    public Response getRoutesAsPassenger(@PathParam("userId") UUID userId) throws UserNotFoundException {
+        List<Route> routes = routeService.getRoutesAsPassenger(userId);
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 

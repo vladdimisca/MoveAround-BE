@@ -63,9 +63,16 @@ public class RouteService {
                 new RouteNotFoundException(ExceptionMessage.ROUTE_NOT_FOUND, Response.Status.NOT_FOUND));
     }
 
-    public List<Route> getRoutesByUserId(UUID userId) throws UserNotFoundException {
+    public List<Route> getRoutesAsDriver(UUID userId) throws UserNotFoundException {
         userService.checkUserExistenceById(userId);
-        return routeDAO.getRoutesByUserId(userId);
+        List<Route> routes = routeDAO.getRoutesByUserId(userId);
+        return routes.stream().filter(route -> route.getParentRoute() == null).collect(Collectors.toList());
+    }
+
+    public List<Route> getRoutesAsPassenger(UUID userId) throws UserNotFoundException {
+        userService.checkUserExistenceById(userId);
+        List<Route> routes = routeDAO.getRoutesByUserId(userId);
+        return routes.stream().filter(route -> route.getParentRoute() != null).collect(Collectors.toList());
     }
 
     public List<Route> getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
