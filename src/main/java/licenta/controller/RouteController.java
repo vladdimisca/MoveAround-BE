@@ -55,6 +55,15 @@ public class RouteController {
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 
+    @GET
+    @Authenticated
+    @Path("/{routeId}/waypoints")
+    public Response getWaypoints(@PathParam("routeId") Integer routeId) throws RouteNotFoundException {
+        Route route = routeService.getRouteById(routeId);
+        return Response.ok(
+                route.getSubRoutes().stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
+    }
+
     @POST
     @Path("/matching")
     @Authenticated
@@ -62,4 +71,5 @@ public class RouteController {
         List<Route> routes = routeService.getPossibleRoutes(route);
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
+
 }
