@@ -2,11 +2,11 @@ package licenta.dao;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import licenta.model.Route;
-import org.joda.time.Period;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,7 +20,9 @@ public class RouteDAO implements PanacheRepository<Route> {
     }
 
     public List<Route> getRoutesByUserId(UUID userId) {
-        return find("user_id = ?1", userId).stream().collect(Collectors.toList());
+        List<Route> routes = find("user_id = ?1", userId).stream().collect(Collectors.toList());
+        Collections.reverse(routes);
+        return routes;
     }
 
     public List<Route> getPossibleRoutes(UUID userId, LocalDateTime dateTime) {

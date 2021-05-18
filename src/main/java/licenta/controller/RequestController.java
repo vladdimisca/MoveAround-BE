@@ -47,6 +47,16 @@ public class RequestController {
                 receivedPending.stream().map(RequestMapper.mapper::fromRequest).collect(Collectors.toList())).build();
     }
 
+    @DELETE
+    @Authenticated
+    @Path("/{requestId}")
+    public Response deleteRequest(@PathParam("requestId") Integer requestId)
+            throws ForbiddenActionException, RequestNotFoundException {
+
+        requestService.deleteRequestById(requestId);
+        return Response.noContent().build();
+    }
+
     @POST
     @Authenticated
     @Path("/{requestId}/accept")

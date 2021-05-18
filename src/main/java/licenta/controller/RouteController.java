@@ -55,6 +55,16 @@ public class RouteController {
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 
+    @DELETE
+    @Authenticated
+    @Path("/{routeId}")
+    public Response deleteRoute(@PathParam("routeId") Integer routeId)
+            throws RouteNotFoundException, ForbiddenActionException {
+
+        routeService.deleteRouteById(routeId);
+        return Response.noContent().build();
+    }
+
     @GET
     @Authenticated
     @Path("/{routeId}/waypoints")

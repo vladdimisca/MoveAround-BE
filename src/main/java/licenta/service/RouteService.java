@@ -1,5 +1,6 @@
 package licenta.service;
 
+import io.quarkus.scheduler.Scheduled;
 import io.quarkus.security.Authenticated;
 import licenta.dao.RouteDAO;
 import licenta.exception.ExceptionMessage;
@@ -63,6 +64,28 @@ public class RouteService {
                 new RouteNotFoundException(ExceptionMessage.ROUTE_NOT_FOUND, Response.Status.NOT_FOUND));
     }
 
+    @Transactional
+    public void deleteRouteById(Integer routeId) throws RouteNotFoundException, ForbiddenActionException {
+        Route route = getRouteById(routeId);
+        UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
+
+        if (!route.getUser().getId().equals(userId)
+                && !(route.getParentRoute() != null && route.getParentRoute().getUser().getId().equals(userId))) {
+
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "You are not allowed to delete this route/waypoint");
+        }
+
+        try {
+            routeValidator.validateStartDate(route.getStartDate());
+        } catch (FailedToParseTheBodyException e) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "Cannot delete a route with a past start date");
+        }
+
+        routeDAO.delete(route);
+    }
+
     public List<Route> getRoutesAsDriver(UUID userId) throws UserNotFoundException {
         userService.checkUserExistenceById(userId);
         List<Route> routes = routeDAO.getRoutesByUserId(userId);
@@ -80,4 +103,5 @@ public class RouteService {
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
         return routeDAO.getPossibleRoutes(userId, route.getStartDate());
     }
+
 }

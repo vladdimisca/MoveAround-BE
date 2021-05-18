@@ -1,5 +1,6 @@
 package licenta.service;
 
+import io.quarkus.scheduler.Scheduled;
 import licenta.dao.RequestDAO;
 import licenta.dao.RouteDAO;
 import licenta.exception.ExceptionMessage;
@@ -47,27 +48,45 @@ public class RequestService {
 
         routeValidator.validateCoordinates(request.getStartLatitude(), request.getStopLongitude(),
                 request.getStopLatitude(), request.getStopLongitude());
-        // TODO: check not to be a subroute
+
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
         Route route = routeService.getRouteById(request.getRoute().getId());
+        if (route.getParentRoute() != null) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "Cannot create a request to a waypoint");
+        }
+
+        try {
+            routeValidator.validateStartDate(route.getStartDate());
+        } catch (FailedToParseTheBodyException e) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "This route has a past start date");
+        }
+
         if (route.getUser().getId().equals(userId)) {
-            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.CONFLICT, "Cannot create a request to your own route");
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "Cannot create a request to your own route");
         }
         if (route.getAvailableSeats() <= route.getSubRoutes().size()) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.FORBIDDEN, "Seats capacity has been reached");
         }
 
-        // check if the current user already made a request to this route and the request is pending or accepted
+        // check if the current user already made a request to this route and the request is pending
         boolean check = route.getRequests().stream()
-                .filter(req -> !req.getStatus().equals(Status.REJECTED))
+                .filter(req -> req.getStatus().equals(Status.PENDING))
                 .map(req -> req.getUser().getId())
                 .anyMatch(userId::equals);
 
         if (check) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.CONFLICT, "You have already created a request to this route");
+        }
+
+        // this user has a waypoint associated with this route
+        if (route.getSubRoutes().stream().anyMatch(subRoute -> subRoute.getUser().getId().equals(userId))) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.CONFLICT, "You already have a waypoint associated with this route");
         }
 
         request.setUser(userService.getUserById(userId));
@@ -97,6 +116,19 @@ public class RequestService {
     }
 
     @Transactional
+    public void deleteRequestById(Integer requestId) throws RequestNotFoundException, ForbiddenActionException {
+        Request request = getRequestById(requestId);
+        UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
+
+        if (!request.getUser().getId().equals(userId)) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.CONFLICT, "You are not allowed to delete this request");
+        }
+
+        requestDAO.delete(request);
+    }
+
+    @Transactional
     public void acceptRequest(Integer requestId) throws RequestNotFoundException, ForbiddenActionException {
         Request request = getRequestById(requestId);
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
@@ -114,6 +146,13 @@ public class RequestService {
                     Response.Status.FORBIDDEN, "Seats capacity has been reached");
         }
 
+        try {
+            routeValidator.validateStartDate(request.getRoute().getStartDate());
+        } catch (FailedToParseTheBodyException e) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "Cannot accept an obsolete request");
+        }
+
         Route subRoute = new Route();
         subRoute.setStartLatitude(request.getStartLatitude());
         subRoute.setStartLongitude(request.getStartLongitude());
@@ -122,7 +161,16 @@ public class RequestService {
         subRoute.setStartDate(request.getRoute().getStartDate());
         subRoute.setParentRoute(request.getRoute());
         subRoute.setUser(request.getUser());
-        subRoute.setPrice(24.0);// TODO: set the price
+
+        // compute the distances
+        double routeDistance = computeDistance(
+                request.getRoute().getStartLatitude(), request.getRoute().getStartLongitude(),
+                request.getRoute().getStopLatitude(), request.getRoute().getStopLongitude());
+        double subRouteDistance = computeDistance(
+                request.getStartLatitude(), request.getStartLongitude(),
+                request.getStopLatitude(), request.getStopLongitude());
+        // set the price based on the distances
+        subRoute.setPrice(subRouteDistance * request.getRoute().getPrice() / routeDistance);
 
         request.setStatus(Status.ACCEPTED);
         requestDAO.persist(request);
@@ -143,21 +191,15 @@ public class RequestService {
                     Response.Status.FORBIDDEN, "You can reject only pending requests");
         }
 
-        request.setStatus(Status.REJECTED);
-        requestDAO.persist(request);
-    }
-
-    @Transactional
-    public void removeRequest(Integer requestId) throws RequestNotFoundException, ForbiddenActionException {
-        Request request = getRequestById(requestId);
-        UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
-
-        if (!request.getUser().getId().equals(userId)) {
+        try {
+            routeValidator.validateStartDate(request.getRoute().getStartDate());
+        } catch (FailedToParseTheBodyException e) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
-                    Response.Status.FORBIDDEN, "This request belongs to another user");
+                    Response.Status.FORBIDDEN, "Cannot reject an obsolete request");
         }
 
-        requestDAO.delete(request);
+        request.setStatus(Status.REJECTED);
+        requestDAO.persist(request);
     }
 
     public static double computeDistance(double firstLatitude, double firstLongitude,
@@ -175,6 +217,12 @@ public class RequestService {
 
         distance = Math.pow(distance, 2);
         return Math.sqrt(distance);
+    }
+
+    @Transactional
+    @Scheduled(every = "8s")
+    void removeObsoleteRequests() {
+        requestDAO.getObsoleteRequests().forEach(requestDAO::delete);
     }
 
 }

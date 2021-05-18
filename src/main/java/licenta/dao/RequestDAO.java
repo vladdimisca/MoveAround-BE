@@ -2,8 +2,10 @@ package licenta.dao;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import licenta.model.Request;
+import licenta.util.enumeration.Status;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,4 +22,11 @@ public class RequestDAO implements PanacheRepository<Request> {
         return find("user_id = ?1", userId).stream().collect(Collectors.toList());
     }
 
+    public List<Request> getObsoleteRequests() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        return find("status = ?1", Status.PENDING)
+                .stream()
+                .filter(request -> request.getRoute().getStartDate().isAfter(currentDateTime))
+                .collect(Collectors.toList());
+    }
 }
