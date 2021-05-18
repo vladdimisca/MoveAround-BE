@@ -26,7 +26,7 @@ public class RequestDAO implements PanacheRepository<Request> {
         LocalDateTime currentDateTime = LocalDateTime.now();
         return find("status = ?1", Status.PENDING)
                 .stream()
-                .filter(request -> request.getRoute().getStartDate().isAfter(currentDateTime))
+                .filter(request -> request.getRoute().getStartDate().isBefore(currentDateTime))
                 .collect(Collectors.toList());
     }
 }
