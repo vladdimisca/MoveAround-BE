@@ -1,6 +1,5 @@
 package licenta.service;
 
-import io.quarkus.scheduler.Scheduled;
 import io.quarkus.security.Authenticated;
 import licenta.dao.RouteDAO;
 import licenta.exception.ExceptionMessage;
@@ -52,7 +51,7 @@ public class RouteService {
 
         if (!route.getUser().getCars().contains(route.getCar())) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
-                    Response.Status.FORBIDDEN, "Selected car does not belong to this user");
+                    Response.Status.FORBIDDEN, "The selected car does not belong to this user");
         }
 
         routeDAO.persist(route);

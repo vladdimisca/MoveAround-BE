@@ -134,7 +134,7 @@ public class UserService {
 
         User user = getUserByFullPhoneNumber(phoneNumber, callingCode);
         if (!encryptionService.passwordMatchesHash(user.getPassword(), password)) {
-            throw new WrongPasswordException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
+            throw new WrongPasswordException(ExceptionMessage.AUTH_ERROR, Response.Status.FORBIDDEN);
         }
         String token = jwtService.generateJwt(user.getEmail(), user.getId());
 

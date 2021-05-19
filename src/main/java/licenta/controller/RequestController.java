@@ -54,7 +54,7 @@ public class RequestController {
             throws ForbiddenActionException, RequestNotFoundException {
 
         requestService.deleteRequestById(requestId);
-        return Response.noContent().build();
+        return Response.ok().build();
     }
 
     @POST
@@ -64,7 +64,7 @@ public class RequestController {
             throws ForbiddenActionException, RequestNotFoundException {
 
         requestService.acceptRequest(requestId);
-        return Response.noContent().build();
+        return Response.ok().build();
     }
 
     @POST
@@ -74,7 +74,7 @@ public class RequestController {
             throws ForbiddenActionException, RequestNotFoundException {
 
         requestService.rejectRequest(requestId);
-        return Response.noContent().build();
+        return Response.ok().build();
     }
 
 }
