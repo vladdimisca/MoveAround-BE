@@ -1,10 +1,13 @@
 package licenta.dto;
 
+import java.time.LocalDateTime;
+
 public class ReviewDTO {
 
     private int id;
     private int rating;
     private String text;
+    private LocalDateTime dateTime;
     private UserDTO receiver;
     private UserDTO sender;
 
@@ -48,5 +51,13 @@ public class ReviewDTO {
 
     public void setSender(UserDTO sender) {
         this.sender = sender;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
     }
 }
