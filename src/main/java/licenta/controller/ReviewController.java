@@ -32,6 +32,13 @@ public class ReviewController {
 
     @GET
     @Authenticated
+    @Path("/{reviewId}")
+    public Response getReviewById(@PathParam("reviewId") Integer reviewId) throws ReviewNotFoundException {
+        return Response.ok(ReviewMapper.mapper.fromReview(reviewService.getReviewById(reviewId))).build();
+    }
+
+    @GET
+    @Authenticated
     @Path("/receiver/{userId}")
     public Response getReviewsByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException {
         List<Review> reviews = reviewService.getReviewsByUserId(userId);

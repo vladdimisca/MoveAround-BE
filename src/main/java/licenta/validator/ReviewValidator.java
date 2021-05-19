@@ -23,9 +23,9 @@ public class ReviewValidator implements Validator<Review> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Text is missing");
         }
-        if (text.length() < 2 || text.length() > 40) {
+        if (text.length() < 2 || text.length() > 100) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Text must be between 2 and 40 characters long");
+                    Response.Status.BAD_REQUEST, "Text must be between 2 and 100 characters long");
         }
     }
 
