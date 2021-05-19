@@ -98,7 +98,9 @@ public class RequestService {
 
     public List<Request> getSentRequests() {
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
-        return requestDAO.getRequestsByUserId(userId);
+        return requestDAO.getRequestsByUserId(userId).stream()
+                .filter(request -> request.getStatus() != Status.ACCEPTED)
+                .collect(Collectors.toList());
     }
 
     public List<Request> getReceivedPendingRequests() throws UserNotFoundException {
@@ -120,6 +122,10 @@ public class RequestService {
         Request request = getRequestById(requestId);
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
 
+        if (request.getStatus().equals(Status.ACCEPTED)) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.CONFLICT, "Cannot delete accepted requests");
+        }
         if (!request.getUser().getId().equals(userId)) {
             throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
                     Response.Status.CONFLICT, "You are not allowed to delete this request");

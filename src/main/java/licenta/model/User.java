@@ -45,6 +45,16 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "activation_code_id", referencedColumnName = "id")
+    private ActivationCode activationCode;
+
+    @Column(name = "email_enabled", nullable = false)
+    private boolean emailEnabled;
+
+    @Column(name = "phone_enabled", nullable = false)
+    private boolean phoneEnabled;
+
     @OneToMany(mappedBy = "user")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Car> cars;
@@ -57,15 +67,13 @@ public class User {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Request> requests;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "activation_code_id", referencedColumnName = "id")
-    private ActivationCode activationCode;
+    @OneToMany(mappedBy = "receiver")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Review> messagesReceived;
 
-    @Column(name = "email_enabled", nullable = false)
-    private boolean emailEnabled;
-
-    @Column(name = "phone_enabled", nullable = false)
-    private boolean phoneEnabled;
+    @OneToMany(mappedBy = "sender")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private List<Review> messagesSent;
 
     public User() {}
 
@@ -195,5 +203,21 @@ public class User {
 
     public void setRequests(List<Request> requests) {
         this.requests = requests;
+    }
+
+    public List<Review> getMessagesReceived() {
+        return messagesReceived;
+    }
+
+    public void setMessagesReceived(List<Review> messagesReceived) {
+        this.messagesReceived = messagesReceived;
+    }
+
+    public List<Review> getMessagesSent() {
+        return messagesSent;
+    }
+
+    public void setMessagesSent(List<Review> messagesSent) {
+        this.messagesSent = messagesSent;
     }
 }

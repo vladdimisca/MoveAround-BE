@@ -2,8 +2,6 @@ package licenta.dto;
 
 import licenta.util.enumeration.Status;
 
-import java.util.UUID;
-
 public class RequestDTO {
     private int id;
     private double startLatitude;
