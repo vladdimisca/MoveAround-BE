@@ -77,6 +77,7 @@ public class ReviewService {
 
         existingReview.setRating(review.getRating());
         existingReview.setText(review.getText());
+        existingReview.setTravelRole(review.getTravelRole());
 
         reviewValidator.validate(existingReview, ValidationMode.UPDATE);
 

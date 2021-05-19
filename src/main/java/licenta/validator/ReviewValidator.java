@@ -3,6 +3,7 @@ package licenta.validator;
 import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.FailedToParseTheBodyException;
 import licenta.model.Review;
+import licenta.util.enumeration.TravelRole;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
@@ -36,6 +37,13 @@ public class ReviewValidator implements Validator<Review> {
         if (Arrays.stream(new int[]{1, 2, 3, 4, 5}).noneMatch(rating::equals)) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "Rating must be an integer number between 1 and 5");
+        }
+    }
+
+    public void validateTravelRole(TravelRole travelRole) throws FailedToParseTheBodyException {
+        if (travelRole == null) {
+            throw new FailedToParseTheBodyException(
+                    ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Travel role is missing");
         }
     }
 }

@@ -1,5 +1,7 @@
 package licenta.model;
 
+import licenta.util.enumeration.TravelRole;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -19,6 +21,9 @@ public class Review {
 
     @Column(nullable = false)
     private LocalDateTime dateTime;
+
+    @Column(name = "travel_role", nullable = false)
+    private TravelRole travelRole;
 
     @ManyToOne(optional = false)
     private User sender;
@@ -72,5 +77,13 @@ public class Review {
 
     public void setReceiver(User receiver) {
         this.receiver = receiver;
+    }
+
+    public TravelRole getTravelRole() {
+        return travelRole;
+    }
+
+    public void setTravelRole(TravelRole travelRole) {
+        this.travelRole = travelRole;
     }
 }
