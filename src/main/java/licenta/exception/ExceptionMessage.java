@@ -8,7 +8,7 @@ public enum ExceptionMessage {
     PHONE_NUMBER_ALREADY_EXISTS(4, "This phone number is already used!"),
     USER_NOT_FOUND(5, "This user does not exist!"),
     WRONG_PASSWORD(6, "The provided password is incorrect!"),
-    AUTH_ERROR(6, "The provided phone number and/or password are incorrect!"),
+    AUTH_ERROR(6, "Phone number and/or password are incorrect!"),
     FORBIDDEN_ACTION(7, "{0}!"),
     ACTIVATION_CODE_NOT_FOUND(8, "{0}!"),
     WRONG_ACTIVATION_CODE(9, "This activation code is wrong!"),
