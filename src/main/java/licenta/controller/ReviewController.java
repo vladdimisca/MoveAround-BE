@@ -26,7 +26,9 @@ public class ReviewController {
     ReviewService reviewService;
 
     @POST
-    public Response createReview(Review review) throws UserNotFoundException, FailedToParseTheBodyException {
+    public Response createReview(Review review)
+            throws UserNotFoundException, FailedToParseTheBodyException, ForbiddenActionException {
+
         return Response.ok(ReviewMapper.mapper.fromReview(reviewService.createReview(review))).build();
     }
 

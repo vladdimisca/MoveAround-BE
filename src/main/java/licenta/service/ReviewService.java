@@ -9,6 +9,7 @@ import licenta.exception.definition.UserNotFoundException;
 import licenta.model.Review;
 import licenta.model.User;
 import licenta.util.enumeration.Authentication;
+import licenta.util.enumeration.TravelRole;
 import licenta.validator.ReviewValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -38,14 +39,37 @@ public class ReviewService {
     JsonWebToken jwt;
 
     @Transactional
-    public Review createReview(Review review) throws UserNotFoundException, FailedToParseTheBodyException {
+    public Review createReview(Review review)
+            throws UserNotFoundException, FailedToParseTheBodyException, ForbiddenActionException {
+
         reviewValidator.validate(review, ValidationMode.CREATE);
 
-        // TODO: add conditions -
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
-
         review.setSender(userService.getUserById(userId));
         review.setReceiver(userService.getUserById(review.getReceiver().getId()));
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        boolean check;
+        if (review.getTravelRole().equals(TravelRole.PASSENGER)) {
+            // must have at least one waypoint associated with one of the receiver's routes which has a past start date
+            check = review.getSender().getRoutes().stream()
+                    .filter(route -> route.getParentRoute() != null)
+                    .filter(subRoute -> subRoute.getParentRoute().getStartDate().isBefore(currentDateTime))
+                    .anyMatch(subRoute ->
+                            subRoute.getParentRoute().getUser().getId().equals(review.getReceiver().getId()));
+        } else {
+            // must have at least one route which has a past start date and has an associated waypoint from the receiver
+            check = review.getReceiver().getRoutes().stream()
+                    .filter(route -> route.getParentRoute() != null)
+                    .filter(subRoute -> subRoute.getParentRoute().getStartDate().isBefore(currentDateTime))
+                    .anyMatch(subRoute ->
+                            subRoute.getParentRoute().getUser().getId().equals(review.getSender().getId()));
+        }
+        if (!check) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "You are not allowed to review this user");
+        }
+
         review.setDateTime(LocalDateTime.now());
         review.setId(0);
 
