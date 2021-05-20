@@ -1,6 +1,7 @@
 package licenta.controller;
 
 import io.quarkus.security.Authenticated;
+import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.*;
 import licenta.mapper.RouteMapper;
 import licenta.model.Route;
@@ -12,6 +13,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,11 +81,19 @@ public class RouteController {
     @GET
     @Path("/matching/{startDate}")
     @Authenticated
-    public Response getPossibleRoutes(@PathParam("startDate") LocalDateTime startDate)
+    public Response getPossibleRoutes(@PathParam("startDate") String strStartDate)
             throws FailedToParseTheBodyException {
 
-        List<Route> routes = routeService.getPossibleRoutes(startDate);
-        return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime startDate = LocalDateTime.parse(strStartDate, formatter);
+
+            List<Route> routes = routeService.getPossibleRoutes(startDate);
+            return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
+        } catch (DateTimeParseException e) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "Bad start date format");
+        }
     }
 
 }
