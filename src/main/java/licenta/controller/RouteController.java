@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -74,11 +75,13 @@ public class RouteController {
                 route.getSubRoutes().stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 
-    @POST
-    @Path("/matching")
+    @GET
+    @Path("/matching/{startDate}")
     @Authenticated
-    public Response getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
-        List<Route> routes = routeService.getPossibleRoutes(route);
+    public Response getPossibleRoutes(@PathParam("startDate") LocalDateTime startDate)
+            throws FailedToParseTheBodyException {
+
+        List<Route> routes = routeService.getPossibleRoutes(startDate);
         return Response.ok(routes.stream().map(RouteMapper.mapper::fromRoute).collect(Collectors.toList())).build();
     }
 

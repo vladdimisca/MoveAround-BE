@@ -69,11 +69,11 @@ public class User {
 
     @OneToMany(mappedBy = "receiver")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<Review> messagesReceived;
+    private List<Review> reviewsReceived;
 
     @OneToMany(mappedBy = "sender")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<Review> messagesSent;
+    private List<Review> reviewsSent;
 
     public User() {}
 
@@ -205,19 +205,19 @@ public class User {
         this.requests = requests;
     }
 
-    public List<Review> getMessagesReceived() {
-        return messagesReceived;
+    public List<Review> getReviewsReceived() {
+        return reviewsReceived;
     }
 
-    public void setMessagesReceived(List<Review> messagesReceived) {
-        this.messagesReceived = messagesReceived;
+    public void setReviewsReceived(List<Review> messagesReceived) {
+        this.reviewsReceived = messagesReceived;
     }
 
-    public List<Review> getMessagesSent() {
-        return messagesSent;
+    public List<Review> getReviewsSent() {
+        return reviewsSent;
     }
 
-    public void setMessagesSent(List<Review> messagesSent) {
-        this.messagesSent = messagesSent;
+    public void setReviewsSent(List<Review> messagesSent) {
+        this.reviewsSent = messagesSent;
     }
 }

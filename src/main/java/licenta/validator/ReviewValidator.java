@@ -16,6 +16,7 @@ public class ReviewValidator implements Validator<Review> {
     public void validate(Review review, ValidationMode validationMode) throws FailedToParseTheBodyException {
         validateText(review.getText());
         validateRating(review.getRating());
+        validateTravelRole(review.getTravelRole());
     }
 
     public void validateText(String text) throws FailedToParseTheBodyException {
@@ -23,9 +24,9 @@ public class ReviewValidator implements Validator<Review> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Text is missing");
         }
-        if (text.length() < 2 || text.length() > 100) {
+        if (text.length() < 2 || text.length() > 200) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Text must be between 2 and 100 characters long");
+                    Response.Status.BAD_REQUEST, "Text must be between 2 and 200 characters long");
         }
     }
 

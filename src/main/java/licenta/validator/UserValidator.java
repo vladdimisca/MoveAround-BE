@@ -70,9 +70,9 @@ public class UserValidator implements Validator<User> {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Description is missing");
         }
-        if (description.length() > 100) {
+        if (description.length() > 120) {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
-                    Response.Status.BAD_REQUEST, "Description must be at most 100 characters long");
+                    Response.Status.BAD_REQUEST, "Description must be at most 120 characters long");
         }
     }
 

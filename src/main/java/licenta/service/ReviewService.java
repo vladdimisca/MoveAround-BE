@@ -55,7 +55,14 @@ public class ReviewService {
 
     public List<Review> getReviewsByUserId(UUID userId) throws UserNotFoundException {
         User user = userService.getUserById(userId);
-        return user.getMessagesReceived();
+        return user.getReviewsReceived().stream()
+                .sorted((review1, review2) -> {
+                    if (review1.getDateTime().equals(review2.getDateTime())) {
+                        return 0;
+                    }
+                    return review1.getDateTime().isAfter(review2.getDateTime()) ? 1 : -1;
+                })
+                .collect(Collectors.toList());
     }
 
     public Review getReviewById(Integer reviewId) throws ReviewNotFoundException {
@@ -101,7 +108,7 @@ public class ReviewService {
     public double computeAvgRatingByUserId(UUID userId) throws UserNotFoundException {
         User user = userService.getUserById(userId);
 
-        return user.getMessagesReceived().stream()
+        return user.getReviewsReceived().stream()
                 .collect(Collectors.averagingDouble(Review::getRating));
     }
 

@@ -14,6 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -97,10 +98,10 @@ public class RouteService {
         return routes.stream().filter(route -> route.getParentRoute() != null).collect(Collectors.toList());
     }
 
-    public List<Route> getPossibleRoutes(Route route) throws FailedToParseTheBodyException {
-        routeValidator.validateStartDate(route.getStartDate());
+    public List<Route> getPossibleRoutes(LocalDateTime startDate) throws FailedToParseTheBodyException {
+        routeValidator.validateStartDate(startDate);
         UUID userId = UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue()));
-        return routeDAO.getPossibleRoutes(userId, route.getStartDate());
+        return routeDAO.getPossibleRoutes(userId, startDate);
     }
 
 }
