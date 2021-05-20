@@ -60,7 +60,7 @@ public class ReviewService {
                     if (review1.getDateTime().equals(review2.getDateTime())) {
                         return 0;
                     }
-                    return review1.getDateTime().isAfter(review2.getDateTime()) ? 1 : -1;
+                    return review1.getDateTime().isBefore(review2.getDateTime()) ? 1 : -1;
                 })
                 .collect(Collectors.toList());
     }
