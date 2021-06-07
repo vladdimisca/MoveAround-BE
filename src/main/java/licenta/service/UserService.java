@@ -102,7 +102,7 @@ public class UserService {
 
         user.setId(UUID.randomUUID());
         user.setCreatedAt(java.util.Calendar.getInstance().getTime());
-        user.setPassword(encryptionService.encrypt(user.getPassword()));
+        user.setPassword(encryptionService.hash(user.getPassword()));
         user.setActivationCode(activationCode);
         user.setProfilePictureURL(null);
         user.setDescription("");
@@ -196,7 +196,7 @@ public class UserService {
             throw new WrongPasswordException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
         }
         userValidator.validatePassword(newPassword);
-        userDAO.updatePasswordById(userId, encryptionService.encrypt(newPassword));
+        userDAO.updatePasswordById(userId, encryptionService.hash(newPassword));
     }
 
     @Transactional
@@ -226,9 +226,16 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUserById(UUID userId) throws ForbiddenActionException, UserNotFoundException {
+    public void deleteUserById(UUID userId, String password)
+            throws ForbiddenActionException, UserNotFoundException, InternalServerErrorException {
+
         checkIfUserIdMatchesToken(userId);
         User userToDelete = getUserById(userId);
+
+        if (!encryptionService.passwordMatchesHash(userToDelete.getPassword(), password)) {
+            throw new ForbiddenActionException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
+        }
+
         userDAO.delete(userToDelete);
         activationCodeDAO.delete(userToDelete.getActivationCode());
     }
@@ -246,7 +253,7 @@ public class UserService {
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
 
         String newPassword = SecureRandomService.generateRandomPassword();
-        user.setPassword(encryptionService.encrypt(newPassword));
+        user.setPassword(encryptionService.hash(newPassword));
         userDAO.persist(user);
         emailService.sendNewPassword(user, newPassword);
     }

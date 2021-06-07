@@ -31,7 +31,7 @@ import java.util.Base64;
 public class EncryptionService {
     private static final WildFlyElytronPasswordProvider PROVIDER = new WildFlyElytronPasswordProvider();
 
-    public String encrypt(String password) throws InternalServerErrorException {
+    public String hash(String password) throws InternalServerErrorException {
         try {
             PasswordFactory passwordFactory =
                     PasswordFactory.getInstance(BCryptPassword.ALGORITHM_BCRYPT, PROVIDER);
@@ -54,7 +54,7 @@ public class EncryptionService {
         }
     }
 
-    public boolean passwordMatchesHash(String encodedPassword, String password) throws InternalServerErrorException {
+    public boolean passwordMatchesHash(String hash, String password) throws InternalServerErrorException {
 
         BCryptPassword originalPassword;
         try {
@@ -62,7 +62,7 @@ public class EncryptionService {
                     PasswordFactory.getInstance(BCryptPassword.ALGORITHM_BCRYPT, PROVIDER);
 
             originalPassword =
-                    (BCryptPassword) passwordFactory.translate(ModularCrypt.decode(encodedPassword));
+                    (BCryptPassword) passwordFactory.translate(ModularCrypt.decode(hash));
             return passwordFactory.verify(originalPassword, password.toCharArray());
         } catch (InvalidKeySpecException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new InternalServerErrorException(

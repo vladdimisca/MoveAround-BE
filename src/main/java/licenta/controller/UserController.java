@@ -90,10 +90,10 @@ public class UserController {
     @DELETE
     @Path("/{userId}")
     @Authenticated
-    public Response deleteUserById(@PathParam("userId") UUID userId)
-            throws ForbiddenActionException, UserNotFoundException {
+    public Response deleteUserById(@PathParam("userId") UUID userId, @HeaderParam("Password") String password)
+            throws ForbiddenActionException, UserNotFoundException, InternalServerErrorException {
 
-        userService.deleteUserById(userId);
+        userService.deleteUserById(userId, password);
         return Response.noContent().build();
     }
 
