@@ -99,7 +99,7 @@ public class RouteController {
     }
 
     @GET
-//    @RolesAllowed({ Role.Constants.ADMIN })
+    @RolesAllowed({ Role.Constants.ADMIN })
     public Response getNumberOfRoutes() {
         return Response.ok(routeService.getNumberOfRoutes()).build();
     }
