@@ -18,7 +18,7 @@ public class UserDAO implements PanacheRepository<User> {
     }
 
     public List<User> getAllUsers() {
-        return find("role != ?1", Role.USER.getValue()).stream().collect(Collectors.toList());
+        return find("role = ?1", Role.USER.getValue()).stream().collect(Collectors.toList());
     }
 
     public Optional<User> getUserByEmail(String email) {
