@@ -1,7 +1,5 @@
 package licenta.dto;
 
-import licenta.util.enumeration.TravelRole;
-
 import java.time.LocalDateTime;
 
 public class ReviewDTO {
@@ -12,7 +10,7 @@ public class ReviewDTO {
     private LocalDateTime dateTime;
     private UserDTO receiver;
     private UserDTO sender;
-    private TravelRole travelRole;
+    private String travelRole;
 
     public ReviewDTO() {}
 
@@ -64,11 +62,11 @@ public class ReviewDTO {
         this.dateTime = dateTime;
     }
 
-    public TravelRole getTravelRole() {
+    public String getTravelRole() {
         return travelRole;
     }
 
-    public void setTravelRole(TravelRole travelRole) {
+    public void setTravelRole(String travelRole) {
         this.travelRole = travelRole;
     }
 

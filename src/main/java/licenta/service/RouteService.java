@@ -6,9 +6,11 @@ import licenta.exception.ExceptionMessage;
 import licenta.exception.definition.*;
 import licenta.model.Route;
 import licenta.util.enumeration.Authentication;
+import licenta.util.enumeration.TravelRole;
 import licenta.validator.RouteValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jose4j.json.internal.json_simple.JSONObject;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -104,4 +106,12 @@ public class RouteService {
         return routeDAO.getPossibleRoutes(userId, startDate);
     }
 
+    @SuppressWarnings("unchecked")
+    public JSONObject getNumberOfRoutes() {
+        JSONObject entity = new JSONObject();
+        entity.put(TravelRole.DRIVER.name(), routeDAO.getNoOfRoutesAsDriver());
+        entity.put(TravelRole.PASSENGER.name(), routeDAO.getNoOfRoutesAsPassenger());
+
+        return entity;
+    }
 }

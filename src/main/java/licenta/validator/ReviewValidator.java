@@ -41,10 +41,14 @@ public class ReviewValidator implements Validator<Review> {
         }
     }
 
-    public void validateTravelRole(TravelRole travelRole) throws FailedToParseTheBodyException {
+    public void validateTravelRole(String travelRole) throws FailedToParseTheBodyException {
         if (travelRole == null) {
             throw new FailedToParseTheBodyException(
                     ExceptionMessage.FAILED_TO_PARSE_THE_BODY, Response.Status.BAD_REQUEST, "Travel role is missing");
+        }
+        if (!travelRole.equals(TravelRole.PASSENGER.name()) && !travelRole.equals(TravelRole.DRIVER.name())) {
+            throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
+                    Response.Status.BAD_REQUEST, "The provided travel role does not exist");
         }
     }
 }

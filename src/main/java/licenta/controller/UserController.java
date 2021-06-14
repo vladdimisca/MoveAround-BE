@@ -8,9 +8,11 @@ import licenta.model.ActivationCode;
 import licenta.model.User;
 import licenta.service.UserService;
 
+import licenta.util.enumeration.Role;
 import org.jose4j.json.internal.json_simple.JSONObject;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -100,7 +102,7 @@ public class UserController {
     @POST
     @Path("/{email}/forgot-password")
     public Response forgotPassword(@PathParam("email") String email)
-            throws UserNotFoundException, InternalServerErrorException {
+            throws UserNotFoundException, InternalServerErrorException, ForbiddenActionException {
 
         userService.sendNewPasswordByEmail(email);
         return Response.ok("A new password has been sent to you by email.").build();
@@ -126,4 +128,11 @@ public class UserController {
         userService.resendEmailCodeById(userId);
         return Response.noContent().build();
     }
+
+    @GET
+    @RolesAllowed({ Role.Constants.ADMIN })
+    public Response getAllUsers() {
+        return Response.ok(userService.getAllUsers().stream().map(userMapper::fromUser)).build();
+    }
+
 }

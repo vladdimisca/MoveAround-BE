@@ -14,16 +14,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 public class JwtService {
 
-    public String generateJwt(String email, UUID userId) throws InternalServerErrorException {
+    public String generateJwt(String email, UUID userId, String role) throws InternalServerErrorException {
         return Jwt
                 .issuer(getIssuer())
                 .upn(email)
+                .groups(new HashSet<>(Collections.singletonList(role)))
                 .claim(Authentication.ID_CLAIM.getValue(), userId)
                 .sign(getPrivateKey());
     }

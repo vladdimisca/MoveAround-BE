@@ -2,16 +2,23 @@ package licenta.dao;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import licenta.model.User;
+import licenta.util.enumeration.Role;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class UserDAO implements PanacheRepository<User> {
 
     public Optional<User> getUserById(UUID userId) {
         return find("id", userId).firstResultOptional();
+    }
+
+    public List<User> getAllUsers() {
+        return find("role != ?1", Role.USER.getValue()).stream().collect(Collectors.toList());
     }
 
     public Optional<User> getUserByEmail(String email) {

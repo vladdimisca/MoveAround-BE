@@ -26,6 +26,7 @@ public class ReviewController {
     ReviewService reviewService;
 
     @POST
+    @Authenticated
     public Response createReview(Review review)
             throws UserNotFoundException, FailedToParseTheBodyException, ForbiddenActionException {
 

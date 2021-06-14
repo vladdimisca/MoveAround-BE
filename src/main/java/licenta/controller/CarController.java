@@ -25,6 +25,7 @@ public class CarController {
     CarService carService;
 
     @POST
+    @Authenticated
     public Response createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException,
             FailedToParseTheBodyException, ForbiddenActionException {
 
@@ -32,6 +33,7 @@ public class CarController {
     }
 
     @PUT
+    @Authenticated
     @Path("/{carId}")
     public Response updateCarById(@PathParam("carId") Integer carId, Car car) throws CarNotFoundException,
             ForbiddenActionException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
@@ -40,6 +42,7 @@ public class CarController {
     }
 
     @GET
+    @Authenticated
     @Path("/{carId}")
     public Response getCarById(@PathParam("carId") Integer carId) throws CarNotFoundException {
         return Response.ok(CarMapper.mapper.fromCar(carService.getCarById(carId))).build();

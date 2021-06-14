@@ -55,6 +55,9 @@ public class User {
     @Column(name = "phone_enabled", nullable = false)
     private boolean phoneEnabled;
 
+    @Column(nullable = false)
+    private String role;
+
     @OneToMany(mappedBy = "user")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Car> cars;
@@ -69,11 +72,11 @@ public class User {
 
     @OneToMany(mappedBy = "receiver")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<Review> reviewsReceived;
+    private List<Review> receivedReviews;
 
     @OneToMany(mappedBy = "sender")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<Review> reviewsSent;
+    private List<Review> sentReviews;
 
     public User() {}
 
@@ -205,19 +208,27 @@ public class User {
         this.requests = requests;
     }
 
-    public List<Review> getReviewsReceived() {
-        return reviewsReceived;
+    public List<Review> getReceivedReviews() {
+        return receivedReviews;
     }
 
-    public void setReviewsReceived(List<Review> messagesReceived) {
-        this.reviewsReceived = messagesReceived;
+    public void setReceivedReviews(List<Review> messagesReceived) {
+        this.receivedReviews = messagesReceived;
     }
 
-    public List<Review> getReviewsSent() {
-        return reviewsSent;
+    public List<Review> getSentReviews() {
+        return sentReviews;
     }
 
-    public void setReviewsSent(List<Review> messagesSent) {
-        this.reviewsSent = messagesSent;
+    public void setSentReviews(List<Review> messagesSent) {
+        this.sentReviews = messagesSent;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

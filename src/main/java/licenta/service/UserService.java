@@ -12,6 +12,7 @@ import licenta.util.StorageUtil;
 import licenta.util.Util;
 import licenta.util.enumeration.Authentication;
 import licenta.util.enumeration.Configuration;
+import licenta.util.enumeration.Role;
 import licenta.validator.UserValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -101,6 +102,7 @@ public class UserService {
         activationCodeDAO.persist(activationCode);
 
         user.setId(UUID.randomUUID());
+        user.setRole(Role.USER.getValue());
         user.setCreatedAt(java.util.Calendar.getInstance().getTime());
         user.setPassword(encryptionService.hash(user.getPassword()));
         user.setActivationCode(activationCode);
@@ -122,6 +124,10 @@ public class UserService {
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
     }
 
+    public List<User> getAllUsers() {
+        return userDAO.getAllUsers();
+    }
+
     public User getUserByFullPhoneNumber(String phoneNumber, String callingCode) throws UserNotFoundException {
 
         Optional<User> user = userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode);
@@ -136,7 +142,7 @@ public class UserService {
         if (!encryptionService.passwordMatchesHash(user.getPassword(), password)) {
             throw new WrongPasswordException(ExceptionMessage.AUTH_ERROR, Response.Status.FORBIDDEN);
         }
-        String token = jwtService.generateJwt(user.getEmail(), user.getId());
+        String token = jwtService.generateJwt(user.getEmail(), user.getId(), user.getRole());
 
         return Response
                 .ok(userMapper.fromUser(user))
@@ -229,7 +235,7 @@ public class UserService {
     public void deleteUserById(UUID userId, String password)
             throws ForbiddenActionException, UserNotFoundException, InternalServerErrorException {
 
-        checkIfUserIdMatchesToken(userId);
+        isAdminOrOwnsAccount(userId);
         User userToDelete = getUserById(userId);
 
         if (!encryptionService.passwordMatchesHash(userToDelete.getPassword(), password)) {
@@ -247,10 +253,25 @@ public class UserService {
         }
     }
 
+    public void isAdminOrOwnsAccount(UUID userId) throws ForbiddenActionException {
+        try {
+            checkIfUserIdMatchesToken(userId);
+        } catch (ForbiddenActionException e) {
+            if (!jwt.getGroups().contains(Role.ADMIN.getValue())) {
+                throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                        Response.Status.FORBIDDEN, "You must either be admin or own this account");
+            }
+        }
+    }
+
     @Transactional
-    public void sendNewPasswordByEmail(String email) throws UserNotFoundException, InternalServerErrorException {
+    public void sendNewPasswordByEmail(String email)
+            throws UserNotFoundException, InternalServerErrorException, ForbiddenActionException {
+
         User user = userDAO.getUserByEmail(email).orElseThrow(() ->
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
+
+        checkIfUserIdMatchesToken(user.getId());
 
         String newPassword = SecureRandomService.generateRandomPassword();
         user.setPassword(encryptionService.hash(newPassword));

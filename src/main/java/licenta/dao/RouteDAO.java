@@ -2,6 +2,7 @@ package licenta.dao;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import licenta.model.Route;
+import licenta.util.enumeration.TravelRole;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.time.Duration;
@@ -34,5 +35,13 @@ public class RouteDAO implements PanacheRepository<Route> {
                             route.getStartDate().isAfter(dateTime.minus(Duration.ofHours(4))) &&
                             route.getStartDate().isBefore(dateTime.plus(Duration.ofHours(4))))
                 .collect(Collectors.toList());
+    }
+
+    public Long getNoOfRoutesAsDriver() {
+        return find("travel_role = ?1", TravelRole.DRIVER.name()).stream().count();
+    }
+
+    public Long getNoOfRoutesAsPassenger() {
+        return find("travel_role = ?1", TravelRole.PASSENGER.name()).stream().count();
     }
 }

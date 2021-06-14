@@ -6,7 +6,9 @@ import licenta.exception.definition.*;
 import licenta.mapper.RouteMapper;
 import licenta.model.Route;
 import licenta.service.RouteService;
+import licenta.util.enumeration.Role;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -94,6 +96,12 @@ public class RouteController {
             throw new FailedToParseTheBodyException(ExceptionMessage.FAILED_TO_PARSE_THE_BODY,
                     Response.Status.BAD_REQUEST, "Bad start date format");
         }
+    }
+
+    @GET
+    @RolesAllowed({ Role.Constants.ADMIN })
+    public Response getNumberOfRoutes() {
+        return Response.ok(routeService.getNumberOfRoutes()).build();
     }
 
 }

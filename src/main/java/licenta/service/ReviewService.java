@@ -50,7 +50,7 @@ public class ReviewService {
 
         LocalDateTime currentDateTime = LocalDateTime.now();
         boolean check;
-        if (review.getTravelRole().equals(TravelRole.PASSENGER)) {
+        if (review.getTravelRole().equals(TravelRole.PASSENGER.name())) {
             // must have at least one waypoint associated with one of the receiver's routes which has a past start date
             check = review.getSender().getRoutes().stream()
                     .filter(route -> route.getParentRoute() != null)
@@ -79,7 +79,7 @@ public class ReviewService {
 
     public List<Review> getReviewsByUserId(UUID userId) throws UserNotFoundException {
         User user = userService.getUserById(userId);
-        return user.getReviewsReceived().stream()
+        return user.getReceivedReviews().stream()
                 .sorted((review1, review2) -> {
                     if (review1.getDateTime().equals(review2.getDateTime())) {
                         return 0;
@@ -132,7 +132,7 @@ public class ReviewService {
     public double computeAvgRatingByUserId(UUID userId) throws UserNotFoundException {
         User user = userService.getUserById(userId);
 
-        return user.getReviewsReceived().stream()
+        return user.getReceivedReviews().stream()
                 .collect(Collectors.averagingDouble(Review::getRating));
     }
 
