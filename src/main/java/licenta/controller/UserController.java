@@ -19,6 +19,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -132,7 +133,8 @@ public class UserController {
     @GET
     @RolesAllowed({ Role.Constants.ADMIN })
     public Response getAllUsers() {
-        return Response.ok(userService.getAllUsers().stream().map(userMapper::fromUser)).build();
+        return Response.ok(
+                userService.getAllUsers().stream().map(userMapper::fromUser).collect(Collectors.toList())).build();
     }
 
 }
