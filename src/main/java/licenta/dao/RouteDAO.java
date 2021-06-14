@@ -38,10 +38,10 @@ public class RouteDAO implements PanacheRepository<Route> {
     }
 
     public Long getNoOfRoutesAsDriver() {
-        return find("travel_role = ?1", TravelRole.DRIVER.name()).stream().count();
+        return find("parentroute_id IS NULL").stream().count();
     }
 
     public Long getNoOfRoutesAsPassenger() {
-        return find("travel_role = ?1", TravelRole.PASSENGER.name()).stream().count();
+        return find("parentroute_id IS NOT NULL").stream().count();
     }
 }
