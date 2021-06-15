@@ -17,6 +17,7 @@ public class UserDTO implements Serializable {
     private boolean phoneEnabled;
     private LocalDateTime createdAt;
     private String description;
+    private String role;
 
     public UserDTO() {}
 
@@ -106,5 +107,13 @@ public class UserDTO implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
