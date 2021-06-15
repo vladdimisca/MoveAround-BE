@@ -369,7 +369,7 @@ public class UserService {
                             user.getCreatedAt().getMonthValue() == finalMonth)
                     .collect(Collectors.toList());
 
-            months.add(allMonths[finalMonth]);
+            months.add(allMonths[finalMonth - 1]);
             values.add(newUsers.size());
         }
 
