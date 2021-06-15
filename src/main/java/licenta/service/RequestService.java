@@ -177,7 +177,7 @@ public class RequestService {
                 request.getStopLatitude(), request.getStopLongitude());
         // set the price based on the distances
         subRoute.setPrice(subRouteDistance * request.getRoute().getPrice() / routeDistance);
-        subRoute.setPrice((double)(Math.round(subRoute.getPrice() * 100)) / 100); // truncate two decimal places
+        subRoute.setPrice((double)(Math.round(subRoute.getPrice())));
 
         request.setStatus(Status.ACCEPTED);
         requestDAO.persist(request);
