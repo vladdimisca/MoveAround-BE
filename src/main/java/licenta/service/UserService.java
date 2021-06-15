@@ -246,8 +246,13 @@ public class UserService {
 
         isAdminOrOwnsAccount(userId);
         User userToDelete = getUserById(userId);
+        User caller = getUserById(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue())));
 
-        if (!encryptionService.passwordMatchesHash(userToDelete.getPassword(), password)) {
+        if (userToDelete.getRole().equals(Role.ADMIN.getValue())) {
+            throw new ForbiddenActionException(ExceptionMessage.FORBIDDEN_ACTION,
+                    Response.Status.FORBIDDEN, "Cannot delete an admin account");
+        }
+        if (!encryptionService.passwordMatchesHash(caller.getPassword(), password)) {
             throw new ForbiddenActionException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
         }
 
