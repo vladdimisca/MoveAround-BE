@@ -137,4 +137,11 @@ public class UserController {
                 userService.getAllUsers().stream().map(userMapper::fromUser).collect(Collectors.toList())).build();
     }
 
+    @GET
+    @Path("/join-statistics")
+    @RolesAllowed({ Role.Constants.ADMIN })
+    public Response getJoinStatistics() {
+        return Response.ok(userService.getJoinStatistics()).build();
+    }
+
 }

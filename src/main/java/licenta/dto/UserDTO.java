@@ -1,6 +1,7 @@
 package licenta.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public class UserDTO implements Serializable {
     private String profilePictureURL;
     private boolean emailEnabled;
     private boolean phoneEnabled;
-    private Date createdAt;
+    private LocalDateTime createdAt;
     private String description;
 
     public UserDTO() {}
@@ -75,11 +76,11 @@ public class UserDTO implements Serializable {
         this.profilePictureURL = profilePictureURL;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

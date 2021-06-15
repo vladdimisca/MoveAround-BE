@@ -16,6 +16,7 @@ import licenta.util.enumeration.Role;
 import licenta.validator.UserValidator;
 import licenta.validator.ValidationMode;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jose4j.json.internal.json_simple.JSONObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -27,8 +28,10 @@ import javax.ws.rs.core.Response;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class UserService {
@@ -103,7 +106,7 @@ public class UserService {
 
         user.setId(UUID.randomUUID());
         user.setRole(Role.USER.getValue());
-        user.setCreatedAt(java.util.Calendar.getInstance().getTime());
+        user.setCreatedAt(LocalDateTime.now());
         user.setPassword(encryptionService.hash(user.getPassword()));
         user.setActivationCode(activationCode);
         user.setProfilePictureURL(null);
@@ -343,4 +346,38 @@ public class UserService {
     public void verifyCodeAndEnablePhoneById(UUID userId, String codeGuess) {
 
     }
+
+    @SuppressWarnings("unchecked")
+    public JSONObject getJoinStatistics() {
+        final String[] allMonths = {
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+                "November", "December"
+        };
+
+        List<User> users = getAllUsers();
+        List<String> months = new ArrayList<>();
+        List<Integer> values = new ArrayList<>();
+
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        for (int month = 1; month <= currentDateTime.getMonthValue(); month++) {
+            final int finalMonth = month; // variable used in lambda expression should be final or effectively final
+
+            var newUsers = users.stream()
+                    .filter(user -> user.getCreatedAt().getYear() == currentDateTime.getYear() &&
+                            user.getCreatedAt().getMonthValue() == finalMonth)
+                    .collect(Collectors.toList());
+
+            months.add(allMonths[finalMonth]);
+            values.add(newUsers.size());
+        }
+
+        JSONObject joinStats = new JSONObject();
+        joinStats.put("labels", months);
+        joinStats.put("data", values);
+
+        return joinStats;
+    }
+
 }
