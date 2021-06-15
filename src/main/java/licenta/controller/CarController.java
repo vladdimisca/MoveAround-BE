@@ -5,7 +5,9 @@ import licenta.exception.definition.*;
 import licenta.mapper.CarMapper;
 import licenta.model.Car;
 import licenta.service.CarService;
+import licenta.util.enumeration.Role;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -25,7 +27,7 @@ public class CarController {
     CarService carService;
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     public Response createCar(Car car) throws UserNotFoundException, LicensePlateAlreadyExistsException,
             FailedToParseTheBodyException, ForbiddenActionException {
 
@@ -33,8 +35,8 @@ public class CarController {
     }
 
     @PUT
-    @Authenticated
     @Path("/{carId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response updateCarById(@PathParam("carId") Integer carId, Car car) throws CarNotFoundException,
             ForbiddenActionException, LicensePlateAlreadyExistsException, FailedToParseTheBodyException {
 
@@ -57,8 +59,8 @@ public class CarController {
     }
 
     @DELETE
-    @Authenticated
     @Path("/{carId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response deleteCarById(@PathParam("carId") Integer carId)
             throws CarNotFoundException, ForbiddenActionException {
 

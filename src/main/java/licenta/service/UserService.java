@@ -141,7 +141,13 @@ public class UserService {
     public Response verifyUserAndGenerateToken(String phoneNumber, String callingCode, String password)
             throws UserNotFoundException, InternalServerErrorException, WrongPasswordException {
 
-        User user = getUserByFullPhoneNumber(phoneNumber, callingCode);
+        User user;
+        try {
+            user = getUserByFullPhoneNumber(phoneNumber, callingCode);
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundException(ExceptionMessage.AUTH_ERROR, Response.Status.FORBIDDEN);
+        }
+
         if (!encryptionService.passwordMatchesHash(user.getPassword(), password)) {
             throw new WrongPasswordException(ExceptionMessage.AUTH_ERROR, Response.Status.FORBIDDEN);
         }

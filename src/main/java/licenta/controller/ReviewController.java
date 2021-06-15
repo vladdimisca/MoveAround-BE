@@ -8,7 +8,9 @@ import licenta.exception.definition.UserNotFoundException;
 import licenta.mapper.ReviewMapper;
 import licenta.model.Review;
 import licenta.service.ReviewService;
+import licenta.util.enumeration.Role;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -26,7 +28,7 @@ public class ReviewController {
     ReviewService reviewService;
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     public Response createReview(Review review)
             throws UserNotFoundException, FailedToParseTheBodyException, ForbiddenActionException {
 
@@ -49,8 +51,8 @@ public class ReviewController {
     }
 
     @PUT
-    @Authenticated
     @Path("/{reviewId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response updateReview(@PathParam("reviewId") Integer reviewId, Review review)
             throws ForbiddenActionException, FailedToParseTheBodyException, ReviewNotFoundException {
 
@@ -58,8 +60,8 @@ public class ReviewController {
     }
 
     @DELETE
-    @Authenticated
     @Path("/{reviewId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response deleteReview(@PathParam("reviewId") Integer reviewId)
             throws ForbiddenActionException, ReviewNotFoundException {
 

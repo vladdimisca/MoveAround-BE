@@ -31,7 +31,7 @@ public class RouteController {
     RouteService routeService;
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     public Response createRoute(Route route) throws UserNotFoundException, CarNotFoundException,
             FailedToParseTheBodyException, ForbiddenActionException {
 
@@ -62,8 +62,8 @@ public class RouteController {
     }
 
     @DELETE
-    @Authenticated
     @Path("/{routeId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response deleteRoute(@PathParam("routeId") Integer routeId)
             throws RouteNotFoundException, ForbiddenActionException {
 
@@ -81,8 +81,8 @@ public class RouteController {
     }
 
     @GET
-    @Path("/matching/{startDate}")
     @Authenticated
+    @Path("/matching/{startDate}")
     public Response getPossibleRoutes(@PathParam("startDate") String strStartDate)
             throws FailedToParseTheBodyException {
 

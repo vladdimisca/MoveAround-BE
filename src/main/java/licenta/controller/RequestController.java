@@ -1,11 +1,12 @@
 package licenta.controller;
 
-import io.quarkus.security.Authenticated;
 import licenta.exception.definition.*;
 import licenta.mapper.RequestMapper;
 import licenta.model.Request;
 import licenta.service.RequestService;
+import licenta.util.enumeration.Role;
 
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -22,7 +23,7 @@ public class RequestController {
     RequestService requestService;
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     public Response createRequest(Request request) throws UserNotFoundException,
             FailedToParseTheBodyException, RouteNotFoundException, ForbiddenActionException {
 
@@ -30,8 +31,8 @@ public class RequestController {
     }
 
     @GET
-    @Authenticated
     @Path("/sent")
+    @RolesAllowed({ Role.Constants.USER })
     public Response getSentRequests() {
         List<Request> sentRequests = requestService.getSentRequests();
         return Response.ok(
@@ -39,8 +40,8 @@ public class RequestController {
     }
 
     @GET
-    @Authenticated
     @Path("received")
+    @RolesAllowed({ Role.Constants.USER })
     public Response getReceivedPendingRequests() throws UserNotFoundException {
         List<Request> receivedPending = requestService.getReceivedPendingRequests();
         return Response.ok(
@@ -48,8 +49,8 @@ public class RequestController {
     }
 
     @DELETE
-    @Authenticated
     @Path("/{requestId}")
+    @RolesAllowed({ Role.Constants.USER })
     public Response deleteRequest(@PathParam("requestId") Integer requestId)
             throws ForbiddenActionException, RequestNotFoundException {
 
@@ -58,8 +59,8 @@ public class RequestController {
     }
 
     @POST
-    @Authenticated
     @Path("/{requestId}/accept")
+    @RolesAllowed({ Role.Constants.USER })
     public Response acceptRequest(@PathParam("requestId") Integer requestId)
             throws ForbiddenActionException, RequestNotFoundException {
 
@@ -68,8 +69,8 @@ public class RequestController {
     }
 
     @POST
-    @Authenticated
     @Path("/{requestId}/reject")
+    @RolesAllowed({ Role.Constants.USER })
     public Response rejectRequest(@PathParam("requestId") Integer requestId)
             throws ForbiddenActionException, RequestNotFoundException {
 
