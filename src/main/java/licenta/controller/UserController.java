@@ -81,7 +81,7 @@ public class UserController {
 
     @PUT
     @Path("/{userId}")
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     public Response updateUserById(@PathParam("userId") UUID userId, User user)
             throws ForbiddenActionException, FailedToParseTheBodyException, UserNotFoundException,
             EmailAlreadyExistsException, PhoneNumberAlreadyExistsException, InternalServerErrorException {
@@ -110,7 +110,7 @@ public class UserController {
     }
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     @Path("/{userId}/activation/email")
     public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
             throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
@@ -121,7 +121,7 @@ public class UserController {
     }
 
     @POST
-    @Authenticated
+    @RolesAllowed({ Role.Constants.USER })
     @Path("/{userId}/activation/email/resend")
     public Response resendEmailCodeByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
             InternalServerErrorException, ActivationCodeNotFoundException, ForbiddenActionException {
