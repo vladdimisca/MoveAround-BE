@@ -130,6 +130,27 @@ public class UserController {
         return Response.noContent().build();
     }
 
+    @POST
+    @RolesAllowed({ Role.Constants.USER })
+    @Path("/{userId}/activation/phone")
+    public Response activatePhoneByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
+            throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
+            ActivationCodeNotFoundException, ActivationCodeExpiredException, ForbiddenActionException {
+
+        userService.verifyCodeAndEnablePhoneById(userId, activationCode.getSmsCode());
+        return Response.noContent().build();
+    }
+
+    @POST
+    @RolesAllowed({ Role.Constants.USER })
+    @Path("/{userId}/activation/phone/resend")
+    public Response resendSmsCodeByUserId(@PathParam("userId") UUID userId) throws UserNotFoundException,
+            InternalServerErrorException, ActivationCodeNotFoundException, ForbiddenActionException {
+
+        userService.resendSmsCodeById(userId);
+        return Response.noContent().build();
+    }
+
     @GET
     @RolesAllowed({ Role.Constants.ADMIN })
     public Response getAllUsers() {

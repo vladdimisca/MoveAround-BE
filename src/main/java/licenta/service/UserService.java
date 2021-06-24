@@ -58,6 +58,9 @@ public class UserService {
     EmailService emailService;
 
     @Inject
+    SmsService smsService;
+
+    @Inject
     JsonWebToken jwt;
 
     private void checkEmailNotUsed(String email) throws EmailAlreadyExistsException {
@@ -91,6 +94,18 @@ public class UserService {
         }
     }
 
+    public void updateSmsActivationCode(ActivationCode activationCode, String smsCode)
+            throws InternalServerErrorException {
+
+        activationCode.setSmsCreatedAt(java.util.Calendar.getInstance().getTime());
+        try {
+            activationCode.setSmsCode(encryptionService.encryptAES(smsCode));
+        } catch (Exception e) {
+            throw new InternalServerErrorException(
+                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Transactional
     public User createUser(User user) throws EmailAlreadyExistsException, PhoneNumberAlreadyExistsException,
             InternalServerErrorException, FailedToParseTheBodyException {
@@ -100,8 +115,12 @@ public class UserService {
         checkPhoneNumberNotUsed(user.getPhoneNumber(), user.getCallingCode());
 
         String emailCode = SecureRandomService.generateRandomCode();
+        String smsCode = SecureRandomService.generateRandomCode();
+
         ActivationCode activationCode = new ActivationCode();
         updateEmailActivationCode(activationCode, emailCode);
+        updateSmsActivationCode(activationCode, smsCode);
+
         activationCodeDAO.persist(activationCode);
 
         user.setId(UUID.randomUUID());
@@ -112,11 +131,14 @@ public class UserService {
         user.setProfilePictureURL(null);
         user.setDescription("");
         user.setEmailEnabled(false);
-        user.setPhoneEnabled(true); // TODO: find a solution to send sms
+        user.setPhoneEnabled(false);
         userDAO.persist(user);
 
         // send an email with the activation code
         emailService.sendConfirmationEmail(user, emailCode);
+
+        // send a sms with the activation code
+        smsService.sendConfirmationSms(user, smsCode);
 
         return user;
     }
@@ -169,7 +191,7 @@ public class UserService {
         userValidator.validate(user, ValidationMode.UPDATE);
 
         boolean isEmailChanged = false;
-        // boolean isPhoneNumberChanged = false;
+        boolean isPhoneNumberChanged = false;
 
         User existingUser = getUserById(userId);
         if (!existingUser.getEmail().equals(user.getEmail())) {
@@ -180,9 +202,10 @@ public class UserService {
         if (!existingUser.getCallingCode().equals(user.getCallingCode()) ||
                 !existingUser.getPhoneNumber().equals(user.getPhoneNumber())) {
             checkPhoneNumberNotUsed(user.getPhoneNumber(), user.getCallingCode());
-            existingUser.setPhoneEnabled(true);
-            // isPhoneNumberChanged = true;
+            existingUser.setPhoneEnabled(false);
+            isPhoneNumberChanged = true;
         }
+
         existingUser.setCallingCode(user.getCallingCode());
         existingUser.setPhoneNumber(user.getPhoneNumber());
         existingUser.setEmail(user.getEmail());
@@ -196,6 +219,13 @@ public class UserService {
             updateEmailActivationCode(existingUser.getActivationCode(), emailCode);
             activationCodeDAO.persist(existingUser.getActivationCode());
             emailService.sendConfirmationEmail(existingUser, emailCode);
+        }
+
+        if (isPhoneNumberChanged) {
+            String smsCode = SecureRandomService.generateRandomCode();
+            updateSmsActivationCode(existingUser.getActivationCode(), smsCode);
+            activationCodeDAO.persist(existingUser.getActivationCode());
+            smsService.sendConfirmationSms(existingUser, smsCode);
         }
     }
 
@@ -312,8 +342,8 @@ public class UserService {
                         ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
             }
 
-            long millisecondsPassed = (new java.util.Date()).getTime() - activationCode.getEmailCreatedAt().getTime();
-            long difference = TimeUnit.MINUTES.convert(millisecondsPassed , TimeUnit.MILLISECONDS);
+            long passedMilliseconds = (new java.util.Date()).getTime() - activationCode.getEmailCreatedAt().getTime();
+            long difference = TimeUnit.MINUTES.convert(passedMilliseconds , TimeUnit.MILLISECONDS);
             if (difference > 3) {
                 throw new ActivationCodeExpiredException(
                         ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
@@ -335,10 +365,12 @@ public class UserService {
 
         User user = getUserById(userId);
         ActivationCode activationCode = user.getActivationCode();
+
         if (activationCode == null || activationCode.getEmailCode() == null) {
             throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
                     Response.Status.NOT_FOUND, "There is no activation code sent for this email");
         }
+
         String newEmailCode = SecureRandomService.generateRandomCode();
         try {
             user.getActivationCode().setEmailCode(encryptionService.encryptAES(newEmailCode));
@@ -354,8 +386,67 @@ public class UserService {
     }
 
     @Transactional
-    public void verifyCodeAndEnablePhoneById(UUID userId, String codeGuess) {
+    public void verifyCodeAndEnablePhoneById(UUID userId, String codeGuess)
+            throws ActivationCodeExpiredException, UserNotFoundException, ActivationCodeNotFoundException,
+            WrongActivationCodeException, ForbiddenActionException, InternalServerErrorException {
 
+        checkIfUserIdMatchesToken(userId);
+
+        User user = getUserById(userId);
+        ActivationCode activationCode = user.getActivationCode();
+
+        if (activationCode == null || activationCode.getSmsCode() == null) {
+            throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
+                    Response.Status.NOT_FOUND, "There is no activation code generated for this phone number");
+        }
+
+        try {
+            if (!encryptionService.decryptAES(activationCode.getSmsCode()).equals(codeGuess)) {
+                throw new WrongActivationCodeException(
+                        ExceptionMessage.WRONG_ACTIVATION_CODE, Response.Status.FORBIDDEN);
+            }
+
+            long passedMilliseconds = (new java.util.Date()).getTime() - activationCode.getSmsCreatedAt().getTime();
+            long difference = TimeUnit.MINUTES.convert(passedMilliseconds , TimeUnit.MILLISECONDS);
+            if (difference > 3) {
+                throw new ActivationCodeExpiredException(
+                        ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
+            }
+            user.setPhoneEnabled(true);
+        } catch (NoSuchAlgorithmException | InternalServerErrorException | InvalidKeyException | NoSuchPaddingException
+                | IllegalBlockSizeException | BadPaddingException e) {
+
+            throw new InternalServerErrorException(
+                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Transactional
+    public void resendSmsCodeById(UUID userId) throws ForbiddenActionException, UserNotFoundException,
+            ActivationCodeNotFoundException, InternalServerErrorException {
+
+        checkIfUserIdMatchesToken(userId);
+
+        User user = getUserById(userId);
+        ActivationCode activationCode = user.getActivationCode();
+
+        if (activationCode == null || activationCode.getSmsCode() == null) {
+            throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
+                    Response.Status.NOT_FOUND, "There is no activation code sent for this phone number");
+        }
+
+        String newSmsCode = SecureRandomService.generateRandomCode();
+        try {
+            user.getActivationCode().setSmsCode(encryptionService.encryptAES(newSmsCode));
+            user.getActivationCode().setSmsCreatedAt(java.util.Calendar.getInstance().getTime());
+            activationCodeDAO.persist(user.getActivationCode());
+            smsService.sendConfirmationSms(user, newSmsCode);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException |
+                InvalidKeyException | InternalServerErrorException e) {
+
+            throw new InternalServerErrorException(
+                    ExceptionMessage.INTERNAL_SERVER_ERROR, Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -373,7 +464,7 @@ public class UserService {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         for (int month = 1; month <= currentDateTime.getMonthValue(); month++) {
-            final int finalMonth = month; // variable used in lambda expression should be final or effectively final
+            final int finalMonth = month; // variables used in lambda expression should be final or effectively final
 
             var newUsers = users.stream()
                     .filter(user -> user.getCreatedAt().getYear() == currentDateTime.getYear() &&

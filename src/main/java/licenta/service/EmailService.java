@@ -15,19 +15,19 @@ public class EmailService {
 
     public void sendConfirmationEmail(User user, String activationCode) {
       mailer.send(Mail.withText(user.getEmail(),
-              "Confirm your account on MoveAround",
+              "Confirm your account on Move Around",
               "Hello " + user.getFirstName() + ",\n\n" +
-                      "Thanks for signing up with MoveAround! " +
+                      "Thanks for signing up with Move Around! " +
                       "This is your activation code, available for 3 minutes: " + activationCode +
-                      "\n\nHave a nice day,\nMoveAround Team"));
+                      "\n\nHave a nice day,\nMove Around Team"));
     }
 
     public void sendNewPassword(User user, String newPassword) {
         mailer.send(Mail.withText(user.getEmail(),
-                "MoveAround - reset password",
+                "Move Around - reset password",
                 "Hello " + user.getFirstName() + ",\n\n" +
                         "This is your new password: " + newPassword + "\n" +
                         "For security reasons, we recommend to change it as soon as possible!" +
-                        "\n\nHave a nice day,\nMoveAround Team"));
+                        "\n\nHave a nice day,\nMove Around Team"));
     }
 }
