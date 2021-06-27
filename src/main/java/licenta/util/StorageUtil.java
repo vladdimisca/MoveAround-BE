@@ -25,6 +25,7 @@ public final class StorageUtil {
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                         .setStorageBucket(bucketName)
                         .build();
+
                 FirebaseApp.initializeApp(options);
             }
 
