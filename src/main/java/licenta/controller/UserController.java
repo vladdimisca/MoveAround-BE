@@ -47,6 +47,7 @@ public class UserController {
     @Path("/login")
     public Response login(User user) throws InternalServerErrorException, UserNotFoundException,
             WrongPasswordException {
+
         return userService.verifyUserAndGenerateToken(user.getPhoneNumber(), user.getCallingCode(), user.getPassword());
     }
 

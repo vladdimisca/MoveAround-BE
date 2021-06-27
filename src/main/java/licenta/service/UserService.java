@@ -86,6 +86,7 @@ public class UserService {
             throws InternalServerErrorException {
 
         activationCode.setEmailCreatedAt(java.util.Calendar.getInstance().getTime());
+
         try {
             activationCode.setEmailCode(encryptionService.encryptAES(emailCode));
         } catch (Exception e) {
@@ -98,6 +99,7 @@ public class UserService {
             throws InternalServerErrorException {
 
         activationCode.setSmsCreatedAt(java.util.Calendar.getInstance().getTime());
+
         try {
             activationCode.setSmsCode(encryptionService.encryptAES(smsCode));
         } catch (Exception e) {
@@ -154,7 +156,6 @@ public class UserService {
     }
 
     public User getUserByFullPhoneNumber(String phoneNumber, String callingCode) throws UserNotFoundException {
-
         Optional<User> user = userDAO.getUserByFullPhoneNumber(phoneNumber, callingCode);
         return user.orElseThrow(() ->
                 new UserNotFoundException(ExceptionMessage.USER_NOT_FOUND, Response.Status.NOT_FOUND));
@@ -173,6 +174,7 @@ public class UserService {
         if (!encryptionService.passwordMatchesHash(user.getPassword(), password)) {
             throw new WrongPasswordException(ExceptionMessage.AUTH_ERROR, Response.Status.FORBIDDEN);
         }
+
         String token = jwtService.generateJwt(user.getEmail(), user.getId(), user.getRole());
 
         return Response
@@ -236,10 +238,13 @@ public class UserService {
 
         checkUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId);
+
         User persistedUser = getUserById(userId);
+
         if (!encryptionService.passwordMatchesHash(persistedUser.getPassword(), oldPassword)) {
             throw new WrongPasswordException(ExceptionMessage.WRONG_PASSWORD, Response.Status.FORBIDDEN);
         }
+
         userValidator.validatePassword(newPassword);
         userDAO.updatePasswordById(userId, encryptionService.hash(newPassword));
     }
@@ -264,9 +269,10 @@ public class UserService {
                 .getStorage()
                 .signUrl(blobInfo, 365 * 10, TimeUnit.DAYS);
 
+        userDAO.updateProfilePictureURLById(userId, signedURL.toString());
+
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
-        userDAO.updateProfilePictureURLById(userId, signedURL.toString());
         return user;
     }
 
@@ -275,6 +281,7 @@ public class UserService {
             throws ForbiddenActionException, UserNotFoundException, InternalServerErrorException {
 
         isAdminOrOwnsAccount(userId);
+
         User userToDelete = getUserById(userId);
         User caller = getUserById(UUID.fromString(jwt.getClaim(Authentication.ID_CLAIM.getValue())));
 
@@ -319,6 +326,7 @@ public class UserService {
 
         String newPassword = SecureRandomService.generateRandomPassword();
         user.setPassword(encryptionService.hash(newPassword));
+
         userDAO.persist(user);
         emailService.sendNewPassword(user, newPassword);
     }
@@ -332,6 +340,7 @@ public class UserService {
 
         User user = getUserById(userId);
         ActivationCode activationCode = user.getActivationCode();
+
         if (activationCode == null || activationCode.getEmailCode() == null) {
             throw new ActivationCodeNotFoundException(ExceptionMessage.ACTIVATION_CODE_NOT_FOUND,
                     Response.Status.NOT_FOUND, "There is no activation code generated for this email");
@@ -344,6 +353,7 @@ public class UserService {
 
             long passedMilliseconds = (new java.util.Date()).getTime() - activationCode.getEmailCreatedAt().getTime();
             long difference = TimeUnit.MINUTES.convert(passedMilliseconds , TimeUnit.MILLISECONDS);
+
             if (difference > 3) {
                 throw new ActivationCodeExpiredException(
                         ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
@@ -375,6 +385,7 @@ public class UserService {
         try {
             user.getActivationCode().setEmailCode(encryptionService.encryptAES(newEmailCode));
             user.getActivationCode().setEmailCreatedAt(java.util.Calendar.getInstance().getTime());
+
             activationCodeDAO.persist(user.getActivationCode());
             emailService.sendConfirmationEmail(user, newEmailCode);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException |
@@ -408,6 +419,7 @@ public class UserService {
 
             long passedMilliseconds = (new java.util.Date()).getTime() - activationCode.getSmsCreatedAt().getTime();
             long difference = TimeUnit.MINUTES.convert(passedMilliseconds , TimeUnit.MILLISECONDS);
+
             if (difference > 3) {
                 throw new ActivationCodeExpiredException(
                         ExceptionMessage.ACTIVATION_CODE_EXPIRED, Response.Status.FORBIDDEN);
@@ -439,6 +451,7 @@ public class UserService {
         try {
             user.getActivationCode().setSmsCode(encryptionService.encryptAES(newSmsCode));
             user.getActivationCode().setSmsCreatedAt(java.util.Calendar.getInstance().getTime());
+
             activationCodeDAO.persist(user.getActivationCode());
             smsService.sendConfirmationSms(user, newSmsCode);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException |
@@ -459,7 +472,6 @@ public class UserService {
         List<User> users = getAllUsers();
         List<String> months = new ArrayList<>();
         List<Integer> values = new ArrayList<>();
-
 
         LocalDateTime currentDateTime = LocalDateTime.now();
 
