@@ -55,7 +55,6 @@ public class UserController {
     @Path("/{userId}")
     @Authenticated
     public Response getUserById(@PathParam("userId") UUID userId) throws UserNotFoundException {
-        System.out.println("Aici normal ca vreau");
         return Response.ok().entity(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
@@ -73,9 +72,11 @@ public class UserController {
     @PATCH
     @Path("/{userId}/profile-picture")
     @Authenticated
-    public Response updateProfilePictureById(@PathParam("userId") UUID userId, String profilePicture)
+    public Response updateProfilePictureById(@PathParam("userId") UUID userId, JSONObject profilePictureBody)
             throws ForbiddenActionException, InternalServerErrorException,
             FailedToParseTheBodyException, UserNotFoundException {
+
+        String profilePicture = (String) profilePictureBody.get("profilePicture");
 
         return Response.ok(userMapper.fromUser(
                         userService.updateProfilePictureById(userId, profilePicture))).build();
