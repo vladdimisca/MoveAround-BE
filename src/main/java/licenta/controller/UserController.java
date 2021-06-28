@@ -116,8 +116,8 @@ public class UserController {
     @RolesAllowed({ Role.Constants.USER })
     @Path("/{userId}/activation/email")
     public Response activateEmailByUserId(@PathParam("userId") UUID userId, ActivationCode activationCode)
-            throws InternalServerErrorException, WrongActivationCodeException, UserNotFoundException,
-            ActivationCodeNotFoundException, ActivationCodeExpiredException, ForbiddenActionException {
+            throws InternalServerErrorException, WrongActivationCodeException, ForbiddenActionException,
+            ActivationCodeNotFoundException, ActivationCodeExpiredException, UserNotFoundException {
 
         userService.verifyCodeAndEnableEmailById(userId, activationCode.getEmailCode());
         return Response.noContent().build();
