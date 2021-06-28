@@ -256,7 +256,6 @@ public class UserService {
         checkUserExistenceById(userId);
         checkIfUserIdMatchesToken(userId);
         userValidator.validateProfilePicture(base64image);
-        System.out.println("Aici da");
 
         Blob blob = StorageUtil
                 .getDefaultBucket()
@@ -265,13 +264,11 @@ public class UserService {
         BlobInfo blobInfo = BlobInfo
                 .newBuilder(Util.getValueOfConfigVariable(Configuration.BUCKET_NAME), blob.getName()).build();
 
-        System.out.println("Yep");
-
         URL signedURL = StorageUtil
                 .getDefaultBucket()
                 .getStorage()
                 .signUrl(blobInfo, 365 * 10, TimeUnit.DAYS);
-        System.out.println("Nop");
+
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
         userDAO.updateProfilePictureURLById(userId, signedURL.toString());

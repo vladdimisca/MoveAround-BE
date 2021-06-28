@@ -55,6 +55,7 @@ public class UserController {
     @Path("/{userId}")
     @Authenticated
     public Response getUserById(@PathParam("userId") UUID userId) throws UserNotFoundException {
+        System.out.println("Aici normal ca vreau");
         return Response.ok().entity(userMapper.fromUser(userService.getUserById(userId))).build();
     }
 
@@ -75,20 +76,9 @@ public class UserController {
     public Response updateProfilePictureById(@PathParam("userId") UUID userId, String profilePicture)
             throws ForbiddenActionException, InternalServerErrorException,
             FailedToParseTheBodyException, UserNotFoundException {
-        System.out.println("Hehe");
+
         return Response.ok(userMapper.fromUser(
                         userService.updateProfilePictureById(userId, profilePicture))).build();
-    }
-
-    @POST
-    @Path("/{userId}/profile-picture-change")
-    @Authenticated
-    public Response updateProfilePicture(@PathParam("userId") UUID userId, String profilePicture)
-            throws ForbiddenActionException, InternalServerErrorException,
-            FailedToParseTheBodyException, UserNotFoundException {
-        System.out.println("Hehe");
-        return Response.ok(userMapper.fromUser(
-                userService.updateProfilePictureById(userId, profilePicture))).build();
     }
 
     @PUT
