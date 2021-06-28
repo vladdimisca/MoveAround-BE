@@ -269,10 +269,9 @@ public class UserService {
                 .getStorage()
                 .signUrl(blobInfo, 365 * 10, TimeUnit.DAYS);
 
-        userDAO.updateProfilePictureURLById(userId, signedURL.toString());
-
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
+        userDAO.updateProfilePictureURLById(userId, signedURL.toString());
         return user;
     }
 
