@@ -75,7 +75,7 @@ public class UserController {
     public Response updateProfilePictureById(@PathParam("userId") UUID userId, String profilePicture)
             throws ForbiddenActionException, InternalServerErrorException,
             FailedToParseTheBodyException, UserNotFoundException {
-
+        System.out.println("Hehe");
         return Response.ok(userMapper.fromUser(
                         userService.updateProfilePictureById(userId, profilePicture))).build();
     }
