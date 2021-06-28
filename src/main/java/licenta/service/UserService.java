@@ -272,6 +272,7 @@ public class UserService {
         User user = new User();
         user.setProfilePictureURL(signedURL.toString());
         userDAO.updateProfilePictureURLById(userId, signedURL.toString());
+        System.out.println(user.getProfilePictureURL());
         return user;
     }
 
